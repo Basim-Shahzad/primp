@@ -46,6 +46,7 @@ class Hold:
     start: datetime
     end: datetime
     expires_at: datetime
+    service_ids: tuple[int, ...] = ()
 
     def to_json(self) -> str:
         return json.dumps(
@@ -57,6 +58,7 @@ class Hold:
                 "start": self.start.isoformat(),
                 "end": self.end.isoformat(),
                 "expires_at": self.expires_at.isoformat(),
+                "service_ids": list(self.service_ids),
             }
         )
 
@@ -65,17 +67,27 @@ class Hold:
         d: dict[str, Any] = json.loads(raw)
         start, end, exp = (parse_datetime(d[k]) for k in ("start", "end", "expires_at"))
         assert start and end and exp
-        return Hold(d["token"], d["user_id"], d["business_id"], d["staff_id"], start, end, exp)
+        return Hold(
+            d["token"],
+            d["user_id"],
+            d["business_id"],
+            d["staff_id"],
+            start,
+            end,
+            exp,
+            tuple(d.get("service_ids", ())),
+        )
 
 
 def hold_ttl_seconds() -> int:
     return int(settings.BOOKING_HOLD_SECONDS)
 
 
-def hold_key(business_id: int, staff_id: int | None, start: datetime) -> str:
-    return (
-        f"hold:{business_id}:{staff_id if staff_id is not None else 'any'}:{int(start.timestamp())}"
-    )
+def hold_key(business_id: int, staff_id: int | None, start: datetime, slot: int = 0) -> str:
+    """`slot` distinguishes concurrent holds of one start time in capacity mode."""
+    who = staff_id if staff_id is not None else "any"
+    suffix = f":{slot}" if slot else ""
+    return f"hold:{business_id}:{who}:{int(start.timestamp())}{suffix}"
 
 
 def token_key(token: str) -> str:
@@ -104,9 +116,14 @@ def place_hold(
     staff_id: int | None,
     start: datetime,
     end: datetime,
+    service_ids: tuple[int, ...] = (),
+    capacity: int = 1,
     ttl_seconds: int | None = None,
 ) -> Hold | None:
-    """Create a hold. Returns None when that exact key is already held. Raises RedisError."""
+    """Create a hold with SET NX PX. None when every slot of that start is already held.
+
+    Raises redis.exceptions.RedisError when Redis is unavailable.
+    """
     ttl = ttl_seconds or hold_ttl_seconds()
     hold = Hold(
         token=secrets.token_urlsafe(24),
@@ -116,17 +133,15 @@ def place_hold(
         start=start,
         end=end,
         expires_at=timezone.now() + timedelta(seconds=ttl),
+        service_ids=service_ids,
     )
-    return _store(hold, ttl)
-
-
-def _store(hold: Hold, ttl: int) -> Hold | None:
     conn = _conn()
-    key = hold_key(hold.business_id, hold.staff_id, hold.start)
-    if not conn.set(key, hold.to_json(), nx=True, px=ttl * 1000):
-        return None
-    conn.set(token_key(hold.token), key, px=ttl * 1000)
-    return hold
+    for slot in range(max(capacity, 1)):
+        key = hold_key(business_id, staff_id, start, slot)
+        if conn.set(key, hold.to_json(), nx=True, px=ttl * 1000):
+            conn.set(token_key(hold.token), key, px=ttl * 1000)
+            return hold
+    return None
 
 
 def get_hold(token: str) -> Hold | None:
@@ -155,7 +170,12 @@ def release_hold(token: str) -> bool:
     return bool(script(keys=[key_s, token_key(token)], args=[token]))
 
 
-def active_holds(business_id: int, window_start: datetime, window_end: datetime) -> list[Hold]:
+def active_holds(
+    business_id: int,
+    window_start: datetime,
+    window_end: datetime,
+    ignore_tokens: frozenset[str] = frozenset(),
+) -> list[Hold]:
     """Unexpired holds overlapping the window. Redis outage degrades to no holds (logged)."""
     try:
         conn = _conn()
@@ -170,6 +190,11 @@ def active_holds(business_id: int, window_start: datetime, window_end: datetime)
         if raw is None:
             continue
         hold = Hold.from_json(raw)
-        if hold.expires_at > now and hold.start < window_end and hold.end > window_start:
+        if (
+            hold.token not in ignore_tokens
+            and hold.expires_at > now
+            and hold.start < window_end
+            and hold.end > window_start
+        ):
             holds.append(hold)
     return holds
