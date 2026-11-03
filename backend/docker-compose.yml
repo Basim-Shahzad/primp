@@ -1,0 +1,43 @@
+x-app: &app
+  build: .
+  env_file: .env.example
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings.dev
+    DATABASE_URL: postgis://primp:primp@db:5432/primp
+    REDIS_URL: redis://redis:6379/0
+    CELERY_BROKER_URL: redis://redis:6379/1
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_started}
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment: {POSTGRES_USER: primp, POSTGRES_PASSWORD: primp, POSTGRES_DB: primp}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U primp"]
+      interval: 5s
+      retries: 10
+    volumes: [pgdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7-alpine
+  mailpit:
+    image: axllent/mailpit
+    ports: ["8025:8025"]
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports: ["9000:9000", "9001:9001"]
+  web:
+    <<: *app
+    command: sh -c "python manage.py migrate && python manage.py seed_demo && python manage.py runserver 0.0.0.0:8000"
+    ports: ["8000:8000"]
+  worker:
+    <<: *app
+    command: celery -A config worker -l info -Q critical,default,bulk
+  beat:
+    <<: *app
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+volumes:
+  pgdata:
