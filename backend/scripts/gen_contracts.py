@@ -1,6 +1,5 @@
 """Regenerate the import-linter contracts in pyproject.toml from apps/ (run from backend/)."""
 
-import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
