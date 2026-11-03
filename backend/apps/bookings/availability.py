@@ -161,6 +161,7 @@ def _load_busy(
     hi: datetime,
     closures_lo: datetime,
     closures_hi: datetime,
+    ignore_tokens: frozenset[str] = frozenset(),
 ) -> tuple[
     list[tuple[int | None, datetime, datetime]],
     list[tuple[int | None, datetime, datetime]],
@@ -176,7 +177,7 @@ def _load_busy(
             scheduled_end__gt=lo,
         ).values_list("staff_id", "scheduled_start", "scheduled_end")
     ]
-    return closures, appointments, hold_store.active_holds(config.id, lo, hi)
+    return closures, appointments, hold_store.active_holds(config.id, lo, hi, ignore_tokens)
 
 
 def _slots_for_day(
@@ -243,6 +244,7 @@ def get_available_slots(
     staff_id: int | None = None,
     *,
     now: datetime | None = None,
+    ignore_hold_tokens: frozenset[str] = frozenset(),
 ) -> list[Slot]:
     now = now or timezone.now()
     tz = ZoneInfo(config.timezone)
@@ -257,7 +259,7 @@ def get_available_slots(
     buffer = timedelta(minutes=config.buffer_minutes)
     day_start, day_end = _day_bounds(day, tz)
     closures, appointments, holds = _load_busy(
-        config, day_start - buffer, day_end + buffer, day_start, day_end
+        config, day_start - buffer, day_end + buffer, day_start, day_end, ignore_hold_tokens
     )
     return _slots_for_day(ctx, day, now, closures, appointments, holds)
 
@@ -269,11 +271,14 @@ def find_slot(
     staff_id: int | None = None,
     *,
     now: datetime | None = None,
+    ignore_hold_tokens: frozenset[str] = frozenset(),
 ) -> Slot | None:
     """The slot beginning exactly at `start`, if it is currently bookable."""
     tz = ZoneInfo(config.timezone)
     day = start.astimezone(tz).date()
-    for slot in get_available_slots(config, day, service_ids, staff_id, now=now):
+    for slot in get_available_slots(
+        config, day, service_ids, staff_id, now=now, ignore_hold_tokens=ignore_hold_tokens
+    ):
         if slot.start == start:
             return slot
     return None

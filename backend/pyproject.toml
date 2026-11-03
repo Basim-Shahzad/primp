@@ -112,7 +112,7 @@ include_external_packages = false
 name = "accounts does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.accounts"]
-forbidden_modules = ["apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -127,7 +127,7 @@ ignore_imports = [
 name = "bookings does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.bookings"]
-forbidden_modules = ["apps.accounts.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -142,7 +142,7 @@ ignore_imports = [
 name = "businesses does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.businesses"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -157,7 +157,7 @@ ignore_imports = [
 name = "catalog does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.catalog"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -172,7 +172,7 @@ ignore_imports = [
 name = "core does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.core"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -187,7 +187,7 @@ ignore_imports = [
 name = "geo does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.geo"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -202,7 +202,7 @@ ignore_imports = [
 name = "notifications does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.notifications"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -214,10 +214,25 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "payments does not import other apps' models"
+type = "forbidden"
+source_modules = ["apps.payments"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.reviews.models"]
+allow_indirect_imports = true
+unmatched_ignore_imports_alerting = "none"
+ignore_imports = [
+    "apps.payments.tests.** -> **",
+    "apps.payments.factories -> **",
+    "apps.payments.migrations.** -> **",
+    "apps.payments.management.** -> **",
+    "apps.payments.admin -> **",
+]
+
+[[tool.importlinter.contracts]]
 name = "reviews does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.reviews"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.payments.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
