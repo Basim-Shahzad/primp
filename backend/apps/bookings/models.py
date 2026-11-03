@@ -140,3 +140,42 @@ class AppointmentEvent(models.Model):
 
     def __str__(self) -> str:
         return f"{self.appointment_id}: {self.from_status}->{self.to_status}"
+
+
+class RescheduleStatus(models.TextChoices):
+    PENDING = "pending", _("Pending")
+    ACCEPTED = "accepted", _("Accepted")
+    DECLINED = "declined", _("Declined")
+    CANCELLED = "cancelled", _("Cancelled")
+
+
+class RescheduleRequest(TimeStampedModel):
+    """Manual-confirmation businesses must accept a customer's new time before it applies."""
+
+    appointment = models.ForeignKey(
+        Appointment, on_delete=models.CASCADE, related_name="reschedule_requests"
+    )
+    new_start = models.DateTimeField()
+    new_end = models.DateTimeField()
+    new_staff = models.ForeignKey(
+        "businesses.Staff", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    status = models.CharField(
+        max_length=10, choices=RescheduleStatus.choices, default=RescheduleStatus.PENDING
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["appointment"],
+                condition=Q(status="pending"),
+                name="one_pending_reschedule_per_appointment",
+            ),
+            models.CheckConstraint(
+                condition=Q(new_end__gt=F("new_start")), name="reschedule_end_after_start"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.appointment_id} -> {self.new_start:%Y-%m-%d %H:%M} ({self.status})"
