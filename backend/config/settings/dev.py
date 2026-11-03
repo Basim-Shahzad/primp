@@ -6,3 +6,4 @@ CORS_ALLOWED_ORIGINS = env.list(  # noqa: F405
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"]
 )
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_EAGER", default=False)  # noqa: F405
+LOG_REDACT_PII = env.bool("LOG_REDACT_PII", default=False)  # noqa: F405

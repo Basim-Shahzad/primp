@@ -9,6 +9,7 @@ import requests
 from django.conf import settings
 
 from apps.core.adapters import AdapterRegistry
+from apps.core.redact import mask_phone
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,9 @@ class ConsoleSMS(SMSAdapter):
     """Development adapter: writes the message to the log instead of sending it."""
 
     def send(self, to: str, body: str) -> str:
-        logger.info("SMS (console adapter)", extra={"to": to, "body": body})
+        # development helper: the body (with OTP codes) is only shown when DEBUG is on
+        extra = {"to": mask_phone(to), **({"body": body} if settings.DEBUG else {})}
+        logger.info("SMS (console adapter)", extra=extra)
         return "console"
 
 
