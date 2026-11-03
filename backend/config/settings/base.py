@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     "django_prometheus",
     "apps.core",
     "apps.geo",
+    "apps.catalog",
+    "apps.businesses",
     "apps.accounts",
     "apps.notifications",
 ]
