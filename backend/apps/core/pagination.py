@@ -78,6 +78,13 @@ def _keyset_filter(names: list[str], values: list[Any], descending: bool) -> Q:
     return result
 
 
+def encode_cursor(ordering: Sequence[str], obj: Any) -> str:
+    """Cursor pointing just after `obj` for the given ordering."""
+    names = [o.lstrip("-") for o in ordering]
+    payload = {"o": ",".join(ordering), "v": [_encode(getattr(obj, n)) for n in names]}
+    return str(signing.dumps(payload, salt=_SALT, compress=True))
+
+
 def paginate_cursor(
     qs: models.QuerySet[Any],
     *,
@@ -109,9 +116,7 @@ def paginate_cursor(
     rows = rows[:limit]
     next_cursor = None
     if has_more and rows:
-        last = rows[-1]
-        payload = {"o": fingerprint, "v": [_encode(getattr(last, n)) for n in names]}
-        next_cursor = signing.dumps(payload, salt=_SALT, compress=True)
+        next_cursor = encode_cursor(ordering, rows[-1])
     return CursorPage(rows, next_cursor)
 
 

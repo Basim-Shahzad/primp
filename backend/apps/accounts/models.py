@@ -217,3 +217,19 @@ class AccountDeletionRequest(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user_id} ({self.status})"
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist_items")
+    business = models.ForeignKey("businesses.Business", on_delete=models.CASCADE, related_name="+")
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "business"], name="wishlist_unique_user_business"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_id}:{self.business_id}"
