@@ -1,16 +1,107 @@
 [project]
-name = "backend"
+name = "primp-backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Primp backend: beauty and grooming booking marketplace API"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
-    "django>=6.1.2",
-    "django-cors-headers>=4.9.0",
-    "django-ninja>=1.7.3",
-    "django-ninja-extra>=0.31.7",
-    "django-ninja-jwt>=5.4.5",
-    "psycopg[binary]>=3.3.6",
-    "python-dotenv>=1.2.4",
-    "uvicorn>=0.54.0",
+    "django>=5.2,<5.3",
+    "django-ninja>=1.4,<2",
+    "psycopg[binary]>=3.2",
+    "django-environ>=0.12",
+    "django-cors-headers>=4.7",
+    "django-redis>=5.4",
+    "redis>=5.2",
+    "celery>=5.4",
+    "django-celery-beat>=2.7",
+    "pyjwt>=2.10",
+    "argon2-cffi>=23.1",
+    "google-auth>=2.38",
+    "requests>=2.32",
+    "django-storages>=1.14",
+    "pillow>=11",
+    "sentry-sdk>=2.20",
+    "django-prometheus>=2.3",
+    "gunicorn>=23",
+    "uvicorn>=0.34",
 ]
+
+[project.optional-dependencies]
+s3 = ["boto3>=1.36"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.10",
+    "pytest-cov>=6",
+    "pytest-xdist>=3.6",
+    "factory-boy>=3.3",
+    "time-machine>=2.16",
+    "hypothesis>=6.125",
+    "ruff>=0.9",
+    "mypy>=1.15",
+    "django-stubs[compatible-mypy]>=5.1",
+    "celery-types>=0.23",
+    "types-requests",
+    "import-linter>=2.1",
+    "pre-commit>=4",
+    "pip-audit>=2.8",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "DJ", "S", "T20", "RUF"]
+ignore = ["RUF012", "S101", "DJ001"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S105", "S106", "S311", "T20"]
+"**/tests.py" = ["S105", "S106"]
+"conftest.py" = ["S105", "S106"]
+"config/settings/test.py" = ["S105"]
+"**/factories.py" = ["S105", "S106", "S311"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+strict = true
+files = ["apps", "config"]
+exclude = ["/migrations/", "/tests/"]
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["google.*", "django_celery_beat.*", "django_prometheus.*", "celery_types.*", "storages.*", "django_redis.*", "factory.*", "environ.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers --reuse-db"
+markers = ["slow: slow benchmark tests"]
+testpaths = ["apps", "config", "tests"]
+
+[tool.coverage.run]
+source = ["apps", "config"]
+branch = true
+omit = ["*/migrations/*", "*/tests/*", "*/factories.py", "config/settings/dev.py", "config/asgi.py", "config/wsgi.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@abstractmethod"]
+
+[tool.importlinter]
+root_packages = ["apps", "config"]
+include_external_packages = false
