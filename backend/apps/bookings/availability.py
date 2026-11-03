@@ -121,6 +121,121 @@ def _resource_windows(
     return windows_by_staff.get(staff_id) or windows_by_staff.get(None, [])
 
 
+@dataclass
+class _Context:
+    config: biz.BookingConfig
+    services: list[biz.ServiceInfo]
+    duration: timedelta
+    tz: ZoneInfo
+    windows: dict[int, dict[int | None, list[tuple[time, time]]]]
+    able_staff: list[int]
+
+
+def _prepare(config: biz.BookingConfig, service_ids: list[int], staff_id: int | None) -> _Context:
+    services = load_services(config, service_ids)
+    able: list[int] = []
+    if config.staff_level_booking:
+        able = biz.capable_staff_ids(config.id, [s.id for s in services])
+        if staff_id is not None:
+            if staff_id not in able:
+                raise AppError(
+                    "staff_cannot_perform",
+                    _("This staff member cannot perform all selected services."),
+                    422,
+                    {"staff_id": [str(_("Not available for these services."))]},
+                )
+            able = [staff_id]
+    return _Context(
+        config=config,
+        services=services,
+        duration=timedelta(minutes=sum(s.duration_minutes for s in services)),
+        tz=ZoneInfo(config.timezone),
+        windows=biz.opening_windows_all(config.id),
+        able_staff=able,
+    )
+
+
+def _load_busy(
+    config: biz.BookingConfig,
+    lo: datetime,
+    hi: datetime,
+    closures_lo: datetime,
+    closures_hi: datetime,
+) -> tuple[
+    list[tuple[int | None, datetime, datetime]],
+    list[tuple[int | None, datetime, datetime]],
+    list[hold_store.Hold],
+]:
+    closures = biz.closures_overlapping(config.id, closures_lo, closures_hi)
+    appointments: list[tuple[int | None, datetime, datetime]] = [
+        (sid, start, end)
+        for sid, start, end in Appointment.objects.filter(
+            business_id=config.id,
+            status__in=ACTIVE_STATUSES,
+            scheduled_start__lt=hi,
+            scheduled_end__gt=lo,
+        ).values_list("staff_id", "scheduled_start", "scheduled_end")
+    ]
+    return closures, appointments, hold_store.active_holds(config.id, lo, hi)
+
+
+def _slots_for_day(
+    ctx: _Context,
+    day: date,
+    now: datetime,
+    closures: list[tuple[int | None, datetime, datetime]],
+    appointments: list[tuple[int | None, datetime, datetime]],
+    holds: list[hold_store.Hold],
+) -> list[Slot]:
+    config, tz, duration = ctx.config, ctx.tz, ctx.duration
+    buffer = timedelta(minutes=config.buffer_minutes)
+    day_start, day_end = _day_bounds(day, tz)
+    windows = ctx.windows.get(day.weekday(), {})
+    closures = [c for c in closures if c[1] < day_end and c[2] > day_start]
+    appointments = [
+        a for a in appointments if a[1] < day_end + buffer and a[2] > day_start - buffer
+    ]
+    holds = [h for h in holds if h.start < day_end + buffer and h.end > day_start - buffer]
+    common = {
+        "day": day,
+        "tz": tz,
+        "duration": duration,
+        "interval_minutes": config.slot_interval_minutes,
+        "buffer": buffer,
+        "earliest": now + timedelta(minutes=config.lead_time_minutes),
+    }
+
+    if not config.staff_level_booking:
+        starts = free_starts(
+            windows=windows.get(None, []),
+            blocks=[(s, e) for sid, s, e in closures if sid is None],
+            busy=[(s, e) for _sid, s, e in appointments] + [(h.start, h.end) for h in holds],
+            capacity=config.parallel_capacity,
+            **common,  # type: ignore[arg-type]
+        )
+        return [Slot(s, s + duration) for s in starts]
+
+    busy_by_staff: dict[int | None, list[Interval]] = defaultdict(list)
+    for sid, s, e in appointments:
+        busy_by_staff[sid].append((s, e))
+    for h in holds:
+        busy_by_staff[h.staff_id].append((h.start, h.end))
+    business_blocks = [(s, e) for sid, s, e in closures if sid is None]
+
+    available: dict[datetime, list[int]] = defaultdict(list)
+    for sid in ctx.able_staff:
+        starts = free_starts(
+            windows=_resource_windows(windows, sid),
+            blocks=business_blocks + [(s, e) for csid, s, e in closures if csid == sid],
+            busy=busy_by_staff.get(sid, []),
+            capacity=1,
+            **common,  # type: ignore[arg-type]
+        )
+        for s in starts:
+            available[s].append(sid)
+    return [Slot(s, s + duration, tuple(ids)) for s, ids in sorted(available.items())]
+
+
 def get_available_slots(
     config: biz.BookingConfig,
     day: date,
@@ -138,73 +253,13 @@ def get_available_slots(
         )
     if day > today + timedelta(days=config.max_advance_days):
         return []
-
-    services = load_services(config, service_ids)
-    duration = timedelta(minutes=sum(s.duration_minutes for s in services))
-    earliest = now + timedelta(minutes=config.lead_time_minutes)
+    ctx = _prepare(config, service_ids, staff_id)
     buffer = timedelta(minutes=config.buffer_minutes)
     day_start, day_end = _day_bounds(day, tz)
-    lo, hi = day_start - buffer, day_end + buffer
-
-    windows = biz.opening_windows(config.id, day.weekday())
-    closures = biz.closures_overlapping(config.id, day_start, day_end)
-    appointments = Appointment.objects.filter(
-        business_id=config.id,
-        status__in=ACTIVE_STATUSES,
-        scheduled_start__lt=hi,
-        scheduled_end__gt=lo,
-    ).values_list("staff_id", "scheduled_start", "scheduled_end")
-    holds = hold_store.active_holds(config.id, lo, hi)
-
-    common = {
-        "day": day,
-        "tz": tz,
-        "duration": duration,
-        "interval_minutes": config.slot_interval_minutes,
-        "buffer": buffer,
-        "earliest": earliest,
-    }
-
-    if not config.staff_level_booking:
-        starts = free_starts(
-            windows=windows.get(None, []),
-            blocks=[(s, e) for sid, s, e in closures if sid is None],
-            busy=[(s, e) for _sid, s, e in appointments] + [(h.start, h.end) for h in holds],
-            capacity=config.parallel_capacity,
-            **common,  # type: ignore[arg-type]
-        )
-        return [Slot(s, s + duration) for s in starts]
-
-    able = biz.capable_staff_ids(config.id, [s.id for s in services])
-    if staff_id is not None:
-        if staff_id not in able:
-            raise AppError(
-                "staff_cannot_perform",
-                _("This staff member cannot perform all selected services."),
-                422,
-                {"staff_id": [str(_("Not available for these services."))]},
-            )
-        able = [staff_id]
-
-    busy_by_staff: dict[int | None, list[Interval]] = defaultdict(list)
-    for sid, s, e in appointments:
-        busy_by_staff[sid].append((s, e))
-    for h in holds:
-        busy_by_staff[h.staff_id].append((h.start, h.end))
-    business_blocks = [(s, e) for sid, s, e in closures if sid is None]
-
-    available: dict[datetime, list[int]] = defaultdict(list)
-    for sid in able:
-        starts = free_starts(
-            windows=_resource_windows(windows, sid),
-            blocks=business_blocks + [(s, e) for csid, s, e in closures if csid == sid],
-            busy=busy_by_staff.get(sid, []),
-            capacity=1,
-            **common,  # type: ignore[arg-type]
-        )
-        for s in starts:
-            available[s].append(sid)
-    return [Slot(s, s + duration, tuple(ids)) for s, ids in sorted(available.items())]
+    closures, appointments, holds = _load_busy(
+        config, day_start - buffer, day_end + buffer, day_start, day_end
+    )
+    return _slots_for_day(ctx, day, now, closures, appointments, holds)
 
 
 def find_slot(
@@ -239,16 +294,25 @@ def next_available_slot(
 
 
 def _compute_next_slot(config: biz.BookingConfig, now: datetime) -> datetime | None:
-    shortest = biz.min_service_duration(config.id)
-    if shortest is None:
+    service = biz.shortest_service(config.id)
+    if service is None:
         return None
-    service = biz.cheapest_shortest_service_id(config.id)
-    if service is None:  # pragma: no cover - shortest exists so a service exists
+    ctx = _prepare(config, [service.id], None)
+    if not ctx.windows:
         return None
-    tz = ZoneInfo(config.timezone)
+    tz = ctx.tz
     today = now.astimezone(tz).date()
-    for offset in range(min(config.max_advance_days, NEXT_SLOT_LOOKAHEAD_DAYS) + 1):
-        slots = get_available_slots(config, today + timedelta(days=offset), [service], now=now)
+    days = min(config.max_advance_days, NEXT_SLOT_LOOKAHEAD_DAYS)
+    buffer = timedelta(minutes=config.buffer_minutes)
+    first_start, _unused = _day_bounds(today, tz)
+    _unused2, last_end = _day_bounds(today + timedelta(days=days), tz)
+    closures, appointments, holds = _load_busy(
+        config, first_start - buffer, last_end + buffer, first_start, last_end
+    )
+    for offset in range(days + 1):
+        slots = _slots_for_day(
+            ctx, today + timedelta(days=offset), now, closures, appointments, holds
+        )
         if slots:
             return slots[0].start
     return None
