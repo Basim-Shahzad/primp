@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import ratelimit
 from apps.core.errors import AppError
-from apps.notifications.services import queue_sms
+from apps.notifications.services import queue_sms, render_sms_body
 
 OTP_TTL = 300
 RESEND_COOLDOWN = 60
@@ -70,12 +70,7 @@ def request_otp(phone: str, purpose: str, ip: str | None) -> None:
             timeout=OTP_TTL + 60,
         )
         cache.set(f"otp:meta:{phone}", {"last": now, "sent": [*sent, now]}, timeout=3700)
-    queue_sms(
-        phone,
-        str(
-            _("Your Primp verification code is %(code)s. It expires in 5 minutes.") % {"code": code}
-        ),
-    )
+    queue_sms(phone, render_sms_body("otp", {"code": code}))
 
 
 def _invalid() -> AppError:

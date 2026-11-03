@@ -150,7 +150,13 @@ CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_QUEUES = (Queue("critical"), Queue("default"), Queue("bulk"))
 CELERY_TASK_ACKS_LATE = True
 CELERY_TIMEZONE = "UTC"
-CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {}
+CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
+    "reminder-scan": {
+        "task": "apps.notifications.tasks.scan_reminders",
+        "schedule": 300.0,
+        "options": {"queue": "default"},
+    },
+}
 
 # Auth / JWT
 JWT_SIGNING_KEY = env.str("JWT_SIGNING_KEY", default="insecure-base-jwt-key-not-for-production")
@@ -190,6 +196,15 @@ FRONTEND_REVALIDATE_URL = env.str("FRONTEND_REVALIDATE_URL", default="")
 FRONTEND_REVALIDATE_SECRET = env.str("FRONTEND_REVALIDATE_SECRET", default="")
 PAYMENT_GATEWAY = env.str("PAYMENT_GATEWAY", default="fake")
 PAYMENT_WEBHOOK_SECRET = env.str("PAYMENT_WEBHOOK_SECRET", default="dev-webhook-secret")
+REMINDER_OFFSETS = {
+    "reminder_24h": env.int("REMINDER_24H_SECONDS", default=24 * 3600),
+    "reminder_2h": env.int("REMINDER_2H_SECONDS", default=2 * 3600),
+}
+REMINDER_GRACE_SECONDS = env.int("REMINDER_GRACE_SECONDS", default=1800)
+NOTIFICATIONS_RAISE_ON_RENDER_ERROR = env.bool("NOTIFICATIONS_RAISE_ON_RENDER_ERROR", default=False)
+SMS_API_URL = env.str("SMS_API_URL", default="")
+SMS_API_KEY = env.str("SMS_API_KEY", default="")
+SMS_SENDER_ID = env.str("SMS_SENDER_ID", default="Primp")
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
