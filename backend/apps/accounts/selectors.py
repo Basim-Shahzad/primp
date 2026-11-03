@@ -45,3 +45,14 @@ def contact_for(user_id: int) -> Contact | None:
         return None
     profile = CustomerProfile.objects.filter(user_id=user_id).values_list("name", flat=True).first()
     return Contact(user.pk, profile or "", user.phone, user.email)
+
+
+def profile_is_complete(user_id: int) -> bool:
+    """Name, photo and default city set, and a verified phone or email."""
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return False
+    profile = CustomerProfile.objects.filter(user_id=user_id).first()
+    if profile is None or not profile.name or not profile.photo or profile.default_city_id is None:
+        return False
+    return user.is_phone_verified or user.is_email_verified
