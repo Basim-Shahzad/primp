@@ -23,3 +23,7 @@ THROTTLE_ANON = "100000/min"
 THROTTLE_USER = "100000/min"
 SMS_ADAPTER = "fake"
 GOOGLE_CLIENT_IDS = ["test-client-id.apps.googleusercontent.com"]
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}

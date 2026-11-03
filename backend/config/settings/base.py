@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_prometheus",
     "apps.core",
+    "apps.geo",
     "apps.accounts",
     "apps.notifications",
 ]
@@ -105,6 +106,27 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+_bucket = env.str("AWS_STORAGE_BUCKET_NAME", default="")
+if _bucket:  # S3 / R2 / MinIO
+    _default_storage = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": _bucket,
+            "endpoint_url": env.str("AWS_S3_ENDPOINT_URL", default="") or None,
+            "access_key": env.str("AWS_ACCESS_KEY_ID", default=""),
+            "secret_key": env.str("AWS_SECRET_ACCESS_KEY", default=""),
+            "custom_domain": env.str("AWS_S3_CUSTOM_DOMAIN", default="") or None,
+            "default_acl": None,
+            "querystring_auth": False,
+        },
+    }
+else:
+    _default_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+STORAGES = {
+    "default": _default_storage,
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 
 # CORS: explicit allow-list only
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
