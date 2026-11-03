@@ -6,6 +6,7 @@ from pydantic import AfterValidator, EmailStr, StringConstraints
 
 from .models import User
 from .phone import normalize_pk_mobile
+from .profile import photo_url
 
 PKPhone = Annotated[str, AfterValidator(normalize_pk_mobile), Field(max_length=20)]
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -72,6 +73,37 @@ class OTPRequestOut(Schema):
     resend_in: int
 
 
+class ProfilePatchIn(Schema):
+    name: (
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+        | None
+    ) = None
+    default_city_id: int | None = None
+    default_area_id: int | None = None
+
+
+class PhoneChangeIn(Schema):
+    phone: PKPhone
+
+
+class PhoneConfirmIn(Schema):
+    phone: PKPhone
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class EmailChangeIn(Schema):
+    email: Email
+
+
+class DeletionIn(Schema):
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] = ""
+
+
+class DeletionOut(Schema):
+    status: str
+    requested_at: str
+
+
 class UserOut(Schema):
     id: uuid.UUID
     email: str | None
@@ -82,6 +114,8 @@ class UserOut(Schema):
     name: str
     photo_url: str | None
     referral_code: str | None
+    default_city_id: int | None = None
+    default_area_id: int | None = None
 
     @staticmethod
     def from_user(user: User) -> "UserOut":
@@ -96,6 +130,8 @@ class UserOut(Schema):
             is_phone_verified=user.is_phone_verified,
             role=user.role,
             name=profile.name if profile else "",
-            photo_url=None,
+            photo_url=photo_url(profile),
             referral_code=profile.referral_code if profile else None,
+            default_city_id=profile.default_city_id if profile else None,
+            default_area_id=profile.default_area_id if profile else None,
         )
