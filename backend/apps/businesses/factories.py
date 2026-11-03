@@ -7,7 +7,7 @@ from django.utils import timezone
 from factory.django import DjangoModelFactory
 
 from apps.accounts.factories import UserFactory
-from apps.accounts.models import Role
+from apps.accounts.roles import Role
 from apps.catalog.factories import CategoryFactory
 from apps.geo.factories import AreaFactory
 
