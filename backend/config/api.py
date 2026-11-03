@@ -39,3 +39,11 @@ api.add_router("/businesses", businesses_router)
 from apps.reviews.api import businesses_router as reviews_router  # noqa: E402
 
 api.add_router("/businesses", reviews_router)
+
+from apps.bookings.api import appointments_router  # noqa: E402
+
+api.add_router("/appointments", appointments_router)
+
+from apps.payments.api import router as payments_router  # noqa: E402
+
+api.add_router("/payments", payments_router)

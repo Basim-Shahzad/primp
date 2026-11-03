@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "apps.businesses",
     "apps.bookings",
     "apps.reviews",
+    "apps.payments",
     "apps.accounts",
     "apps.notifications",
 ]
@@ -187,6 +188,8 @@ GOOGLE_CLIENT_IDS = env.list("GOOGLE_CLIENT_IDS", default=[])
 BOOKING_HOLD_SECONDS = env.int("BOOKING_HOLD_SECONDS", default=300)
 FRONTEND_REVALIDATE_URL = env.str("FRONTEND_REVALIDATE_URL", default="")
 FRONTEND_REVALIDATE_SECRET = env.str("FRONTEND_REVALIDATE_SECRET", default="")
+PAYMENT_GATEWAY = env.str("PAYMENT_GATEWAY", default="fake")
+PAYMENT_WEBHOOK_SECRET = env.str("PAYMENT_WEBHOOK_SECRET", default="dev-webhook-secret")
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
