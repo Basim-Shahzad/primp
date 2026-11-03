@@ -162,6 +162,7 @@ def _load_busy(
     closures_lo: datetime,
     closures_hi: datetime,
     ignore_tokens: frozenset[str] = frozenset(),
+    ignore_appointment_ids: frozenset[int] = frozenset(),
 ) -> tuple[
     list[tuple[int | None, datetime, datetime]],
     list[tuple[int | None, datetime, datetime]],
@@ -175,7 +176,9 @@ def _load_busy(
             status__in=ACTIVE_STATUSES,
             scheduled_start__lt=hi,
             scheduled_end__gt=lo,
-        ).values_list("staff_id", "scheduled_start", "scheduled_end")
+        )
+        .exclude(pk__in=ignore_appointment_ids)
+        .values_list("staff_id", "scheduled_start", "scheduled_end")
     ]
     return closures, appointments, hold_store.active_holds(config.id, lo, hi, ignore_tokens)
 
@@ -245,6 +248,7 @@ def get_available_slots(
     *,
     now: datetime | None = None,
     ignore_hold_tokens: frozenset[str] = frozenset(),
+    ignore_appointment_ids: frozenset[int] = frozenset(),
 ) -> list[Slot]:
     now = now or timezone.now()
     tz = ZoneInfo(config.timezone)
@@ -259,7 +263,13 @@ def get_available_slots(
     buffer = timedelta(minutes=config.buffer_minutes)
     day_start, day_end = _day_bounds(day, tz)
     closures, appointments, holds = _load_busy(
-        config, day_start - buffer, day_end + buffer, day_start, day_end, ignore_hold_tokens
+        config,
+        day_start - buffer,
+        day_end + buffer,
+        day_start,
+        day_end,
+        ignore_hold_tokens,
+        ignore_appointment_ids,
     )
     return _slots_for_day(ctx, day, now, closures, appointments, holds)
 
@@ -272,12 +282,19 @@ def find_slot(
     *,
     now: datetime | None = None,
     ignore_hold_tokens: frozenset[str] = frozenset(),
+    ignore_appointment_ids: frozenset[int] = frozenset(),
 ) -> Slot | None:
     """The slot beginning exactly at `start`, if it is currently bookable."""
     tz = ZoneInfo(config.timezone)
     day = start.astimezone(tz).date()
     for slot in get_available_slots(
-        config, day, service_ids, staff_id, now=now, ignore_hold_tokens=ignore_hold_tokens
+        config,
+        day,
+        service_ids,
+        staff_id,
+        now=now,
+        ignore_hold_tokens=ignore_hold_tokens,
+        ignore_appointment_ids=ignore_appointment_ids,
     ):
         if slot.start == start:
             return slot

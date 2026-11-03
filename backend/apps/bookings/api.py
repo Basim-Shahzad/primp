@@ -2,6 +2,7 @@ import re
 import uuid
 from datetime import date as date_type
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from django.http import HttpRequest
 from ninja import Header, Query, Router, Status
@@ -14,7 +15,19 @@ from apps.core.permissions import require_role
 
 from . import availability, selectors, services
 from .models import Appointment
-from .schemas import AppointmentOut, AvailabilityOut, BookIn, HoldIn, HoldOut, SlotOut
+from .schemas import (
+    AppointmentOut,
+    AvailabilityOut,
+    BookIn,
+    CancelIn,
+    HoldIn,
+    HoldOut,
+    PolicyOut,
+    RescheduleIn,
+    RescheduleOut,
+    RescheduleRequestOut,
+    SlotOut,
+)
 
 businesses_router = Router(tags=["availability"])
 
@@ -75,6 +88,7 @@ def create_hold(request: HttpRequest, payload: HoldIn) -> Status[HoldOut]:
         service_ids=payload.service_ids,
         staff_id=payload.staff_id,
         start=payload.start,
+        appointment_id=str(payload.appointment_id) if payload.appointment_id else None,
     )
     return Status(
         201,
@@ -119,3 +133,72 @@ def book_appointment(
         .get(pk=appointment.pk)
     )
     return Status(201 if created else 200, selectors.appointment_out(appointment))
+
+
+def _load_out(appointment_id: int) -> AppointmentOut:
+    appointment = (
+        Appointment.objects.select_related("business", "staff")
+        .prefetch_related("items")
+        .get(pk=appointment_id)
+    )
+    return selectors.appointment_out(appointment)
+
+
+@appointments_router.patch("/{appointment_id}/cancel", auth=jwt_auth, response=AppointmentOut)
+def cancel_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: CancelIn
+) -> AppointmentOut:
+    user = _customer(request)
+    appointment = services.cancel_by_customer(
+        user.pk, str(appointment_id), payload.reason, payload.note
+    )
+    return _load_out(appointment.pk)
+
+
+@appointments_router.get("/{appointment_id}/policy", auth=jwt_auth, response=PolicyOut)
+def appointment_policy(request: HttpRequest, appointment_id: uuid.UUID) -> PolicyOut:
+    user = _customer(request)
+    policy = services.get_policy(user.pk, str(appointment_id))
+    if not policy.can_cancel:
+        message = "This appointment can no longer be cancelled."
+    elif policy.is_late_now:
+        message = (
+            f"Cancellations within {policy.notice_hours} hours of the appointment are marked "
+            "as late and may affect your booking history."
+        )
+    else:
+        message = f"Free cancellation until {policy.free_until.isoformat()}."
+    return PolicyOut(
+        cancellation_notice_hours=policy.notice_hours,
+        free_cancellation_until=policy.free_until,
+        is_late_now=policy.is_late_now,
+        can_cancel=policy.can_cancel,
+        message=message,
+    )
+
+
+@appointments_router.patch(
+    "/{appointment_id}/reschedule", auth=jwt_auth, response={200: RescheduleOut, 202: RescheduleOut}
+)
+def reschedule_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: RescheduleIn
+) -> Status[RescheduleOut]:
+    user = _customer(request)
+    result = services.reschedule_by_customer(user.pk, str(appointment_id), payload.hold_token)
+    req = result.request
+    tz = ZoneInfo(result.appointment.business.timezone)
+    return Status(
+        200 if result.applied else 202,
+        RescheduleOut(
+            applied=result.applied,
+            appointment=_load_out(result.appointment.pk),
+            request=RescheduleRequestOut(
+                id=req.pk,
+                status=req.status,
+                new_start=req.new_start.astimezone(tz),
+                new_end=req.new_end.astimezone(tz),
+            )
+            if req
+            else None,
+        ),
+    )

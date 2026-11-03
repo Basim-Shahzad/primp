@@ -10,6 +10,8 @@ booking_completed = Signal()
 booking_cancelled = Signal()  # also sends `cancelled_by` ("customer"|"business")
 booking_no_show = Signal()
 booking_rescheduled = Signal()
+booking_reschedule_requested = Signal()
+booking_reschedule_declined = Signal()
 booking_payment_changed = Signal()
 
 
