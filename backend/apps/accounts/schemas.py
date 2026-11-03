@@ -1,8 +1,16 @@
 import uuid
+from typing import Annotated
 
-from ninja import Schema
+from ninja import Field, Schema
+from pydantic import AfterValidator, EmailStr, StringConstraints
 
 from .models import User
+from .phone import normalize_pk_mobile
+
+PKPhone = Annotated[str, AfterValidator(normalize_pk_mobile), Field(max_length=20)]
+Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+Email = Annotated[EmailStr, Field(max_length=254)]
+Password = Annotated[str, Field(min_length=1, max_length=128)]
 
 
 class TokenOut(Schema):
@@ -10,10 +18,58 @@ class TokenOut(Schema):
     token_type: str = "bearer"  # noqa: S105
     expires_in: int
     refresh_token: str | None = None
+    is_new_user: bool | None = None
 
 
 class RefreshIn(Schema):
     refresh_token: str | None = None
+
+
+class RegisterIn(Schema):
+    name: Name
+    email: Email
+    password: Password
+
+
+class LoginIn(Schema):
+    email: Email
+    password: Password
+
+
+class TokenIn(Schema):
+    token: str = Field(min_length=1, max_length=200)
+
+
+class OTPRequestIn(Schema):
+    phone: PKPhone
+
+
+class OTPVerifyIn(Schema):
+    phone: PKPhone
+    code: str = Field(pattern=r"^\d{6}$")
+    name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] = ""
+
+
+class GoogleIn(Schema):
+    id_token: str = Field(min_length=1, max_length=4096)
+
+
+class PasswordResetRequestIn(Schema):
+    email: Email
+
+
+class PasswordResetConfirmIn(Schema):
+    token: str = Field(min_length=1, max_length=200)
+    new_password: Password
+
+
+class MessageOut(Schema):
+    detail: str
+
+
+class OTPRequestOut(Schema):
+    expires_in: int
+    resend_in: int
 
 
 class UserOut(Schema):
