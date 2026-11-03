@@ -217,6 +217,7 @@ THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
 SENTRY_DSN = env.str("SENTRY_DSN", default="")
+LOG_REDACT_PII = env.bool("LOG_REDACT_PII", default=True)
 API_DOCS_ENABLED = env.bool("API_DOCS_ENABLED", default=True)
 
 # GDAL blocking of file/network access needs GDAL >= 3.9; the API never opens
