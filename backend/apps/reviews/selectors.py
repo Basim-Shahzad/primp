@@ -31,3 +31,11 @@ def rating_summary(business_id: int) -> RatingSummary:
 
 def photo_urls(review: Review) -> list[str]:
     return [str(default_storage.url(p)) for p in review.photos]
+
+
+def reviewed_appointment_ids(appointment_ids: list[int]) -> set[int]:
+    return set(
+        Review.objects.filter(appointment_id__in=appointment_ids).values_list(
+            "appointment_id", flat=True
+        )
+    )

@@ -19,41 +19,28 @@ api = NinjaAPI(
 )
 register_exception_handlers(api)
 
-from apps.accounts.api import auth_router, users_router  # noqa: E402
 
-api.add_router("/auth", auth_router)
-api.add_router("/users", users_router)
+def register_routers() -> None:
+    """Mount every app router. Imports are local so apps load before their routers."""
+    from apps.accounts import api as accounts_api
+    from apps.bookings import api as bookings_api
+    from apps.businesses import api as businesses_api
+    from apps.loyalty import api as loyalty_api
+    from apps.payments import api as payments_api
+    from apps.reviews import api as reviews_api
 
-from apps.bookings.api import businesses_router as availability_router  # noqa: E402
+    api.add_router("/auth", accounts_api.auth_router)
+    api.add_router("/users", accounts_api.users_router)
+    api.add_router("/users", loyalty_api.users_router)
+    api.add_router("/users", bookings_api.users_router)
+    api.add_router("/search", businesses_api.search_router)
+    api.add_router("/businesses", businesses_api.businesses_router)
+    api.add_router("/businesses", bookings_api.businesses_router)
+    api.add_router("/businesses", reviews_api.businesses_router)
+    api.add_router("/appointments", bookings_api.appointments_router)
+    api.add_router("/appointments", reviews_api.appointments_router)
+    api.add_router("/reviews", reviews_api.reviews_router)
+    api.add_router("/payments", payments_api.router)
 
-api.add_router("/businesses", availability_router)
 
-from apps.businesses.api import search_router  # noqa: E402
-
-api.add_router("/search", search_router)
-
-from apps.businesses.api import businesses_router  # noqa: E402
-
-api.add_router("/businesses", businesses_router)
-
-from apps.reviews.api import businesses_router as reviews_router  # noqa: E402
-
-api.add_router("/businesses", reviews_router)
-
-from apps.bookings.api import appointments_router  # noqa: E402
-
-api.add_router("/appointments", appointments_router)
-
-from apps.payments.api import router as payments_router  # noqa: E402
-
-api.add_router("/payments", payments_router)
-
-from apps.reviews.api import appointments_router as review_appointments_router  # noqa: E402
-from apps.reviews.api import reviews_router  # noqa: E402
-
-api.add_router("/appointments", review_appointments_router)
-api.add_router("/reviews", reviews_router)
-
-from apps.loyalty.api import users_router as loyalty_users_router  # noqa: E402
-
-api.add_router("/users", loyalty_users_router)
+register_routers()

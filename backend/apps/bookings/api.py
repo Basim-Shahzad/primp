@@ -1,28 +1,33 @@
 import re
 import uuid
 from datetime import date as date_type
-from typing import Any
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from django.http import HttpRequest
-from ninja import Header, Query, Router, Status
+from django.utils import timezone
+from ninja import Field, Header, Query, Router, Schema, Status
 
 from apps.accounts.auth import jwt_auth
 from apps.accounts.roles import Role
 from apps.businesses import selectors as biz
 from apps.core.errors import AppError, not_found
+from apps.core.pagination import DEFAULT_LIMIT, MAX_LIMIT, paginate_cursor
 from apps.core.permissions import require_role
 
 from . import availability, selectors, services
 from .models import Appointment
 from .schemas import (
+    AppointmentDetailOut,
     AppointmentOut,
+    AppointmentPageOut,
     AvailabilityOut,
     BookIn,
     CancelIn,
     HoldIn,
     HoldOut,
     PolicyOut,
+    RebookDraftOut,
     RescheduleIn,
     RescheduleOut,
     RescheduleRequestOut,
@@ -202,3 +207,47 @@ def reschedule_appointment(
             else None,
         ),
     )
+
+
+users_router = Router(tags=["appointments"])
+
+
+class HistoryParams(Schema):
+    scope: Literal["upcoming", "past", "cancelled"] = "upcoming"
+    cursor: str | None = None
+    limit: int = Field(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
+
+
+@users_router.get("/me/appointments", auth=jwt_auth, response=AppointmentPageOut)
+def my_appointments(request: HttpRequest, params: Query[HistoryParams]) -> AppointmentPageOut:
+    user = _customer(request)
+    qs, ordering = selectors.customer_appointments(user.pk, params.scope, timezone.now())
+    page = paginate_cursor(qs, ordering=ordering, cursor=params.cursor, limit=params.limit)
+    return AppointmentPageOut(
+        items=[selectors.appointment_out(a) for a in page.items], next_cursor=page.next_cursor
+    )
+
+
+@users_router.get("/me/appointments/next", auth=jwt_auth, response=AppointmentOut | None)
+def my_next_appointment(request: HttpRequest) -> AppointmentOut | None:
+    user = _customer(request)
+    appointment = selectors.next_appointment(user.pk, timezone.now())
+    return selectors.appointment_out(appointment) if appointment else None
+
+
+@appointments_router.get("/{appointment_id}", auth=jwt_auth, response=AppointmentDetailOut)
+def appointment_detail(request: HttpRequest, appointment_id: uuid.UUID) -> AppointmentDetailOut:
+    user = _customer(request)
+    detail = selectors.appointment_detail(user.pk, str(appointment_id), timezone.now())
+    if detail is None:
+        raise not_found()
+    return detail
+
+
+@appointments_router.post("/{appointment_id}/rebook-draft", auth=jwt_auth, response=RebookDraftOut)
+def rebook_draft(request: HttpRequest, appointment_id: uuid.UUID) -> RebookDraftOut:
+    user = _customer(request)
+    draft = selectors.rebook_draft(user.pk, str(appointment_id))
+    if draft is None:
+        raise not_found()
+    return draft
