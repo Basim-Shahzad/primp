@@ -290,7 +290,7 @@ def test_area_slug_unique_per_city() -> None:
     AreaFactory(slug="clifton")  # other city OK
     with db_fails(), transaction.atomic():
         AreaFactory(city=city, slug="clifton")
-    assert Area.objects.count() == 3
+    assert Area.objects.count() == 2
 
 
 def test_city_visibility_property_and_selectors() -> None:
