@@ -5,6 +5,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
+import requests
+from django.conf import settings
+
 from apps.core.adapters import AdapterRegistry
 
 logger = logging.getLogger(__name__)
@@ -59,6 +62,41 @@ class FakeSMS(SMSAdapter):
     def reset(cls) -> None:
         cls.outbox.clear()
         cls.fail_with = None
+
+
+@sms_registry.register("http")
+class HttpSMS(SMSAdapter):
+    """Generic JSON-over-HTTP SMS provider skeleton, enabled with SMS_ADAPTER=http.
+
+    Needs SMS_API_URL, SMS_API_KEY and SMS_SENDER_ID. 5xx/timeouts are transient (retried),
+    4xx are permanent (the dispatcher then falls back to email).
+    """
+
+    timeout = 5
+
+    def send(self, to: str, body: str) -> str:
+        url = settings.SMS_API_URL
+        if not url:
+            raise SMSDeliveryError("SMS provider is not configured", permanent=True)
+        try:
+            response = requests.post(
+                url,
+                json={"to": to, "from": settings.SMS_SENDER_ID, "text": body},
+                headers={"Authorization": f"Bearer {settings.SMS_API_KEY}"},
+                timeout=self.timeout,
+            )
+        except requests.RequestException as exc:
+            raise SMSDeliveryError(f"provider unreachable: {exc}") from exc
+        if response.status_code >= 500:
+            raise SMSDeliveryError(f"provider error {response.status_code}")
+        if response.status_code >= 400:
+            raise SMSDeliveryError(
+                f"provider rejected message ({response.status_code})", permanent=True
+            )
+        try:
+            return str(response.json().get("id", ""))
+        except ValueError:
+            return ""
 
 
 def get_sms_adapter() -> SMSAdapter:
