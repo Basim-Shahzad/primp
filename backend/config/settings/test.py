@@ -28,3 +28,4 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 PAYMENT_WEBHOOK_SECRET = "test-webhook-secret"
+NOTIFICATIONS_RAISE_ON_RENDER_ERROR = True

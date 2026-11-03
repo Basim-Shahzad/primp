@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from .models import CustomerProfile, User, Wishlist
 
 
@@ -27,3 +29,19 @@ def display_names(user_ids: list[int]) -> dict[int, str]:
         else:
             names[user_id] = f"{parts[0]} {parts[-1][0]}."
     return names
+
+
+@dataclass(frozen=True)
+class Contact:
+    user_id: int
+    name: str
+    phone: str | None
+    email: str | None
+
+
+def contact_for(user_id: int) -> Contact | None:
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return None
+    profile = CustomerProfile.objects.filter(user_id=user_id).values_list("name", flat=True).first()
+    return Contact(user.pk, profile or "", user.phone, user.email)
