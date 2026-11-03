@@ -27,3 +27,7 @@ api.add_router("/users", users_router)
 from apps.bookings.api import businesses_router as availability_router  # noqa: E402
 
 api.add_router("/businesses", availability_router)
+
+from apps.businesses.api import search_router  # noqa: E402
+
+api.add_router("/search", search_router)

@@ -65,6 +65,7 @@ ignore = ["RUF012", "S101", "DJ001", "UP046", "UP047"]
 "**/tests/**" = ["S105", "S106", "S311", "T20"]
 "**/tests.py" = ["S105", "S106"]
 "conftest.py" = ["S105", "S106"]
+"scripts/*" = ["T201"]
 "config/settings/test.py" = ["S105"]
 "**/factories.py" = ["S105", "S106", "S311"]
 
@@ -89,7 +90,7 @@ django_settings_module = "config.settings.test"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not slow'"
 markers = ["slow: slow benchmark tests"]
 testpaths = ["apps", "config", "tests"]
 

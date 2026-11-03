@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test cov run worker beat migrate openapi
+.PHONY: install lint typecheck test cov run worker beat migrate openapi bench
 SETTINGS ?= config.settings.dev
 
 install:
@@ -32,3 +32,6 @@ migrate:
 
 openapi:
 	DJANGO_SETTINGS_MODULE=config.settings.test uv run python manage.py export_openapi > openapi.json
+
+bench:
+	uv run pytest -q -m slow -s
