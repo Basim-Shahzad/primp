@@ -1,0 +1,43 @@
+# ====================================================================
+# Environment & Sensitive Information (NEVER commit secrets)
+# ====================================================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ====================================================================
+# Log Files & Temporary Files
+# ====================================================================
+*.log
+*.tmp
+*.bak
+*.swp
+crash.dump
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# ====================================================================
+# IDEs and Text Editors
+# ====================================================================
+# Visual Studio Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# IntelliJ / WebStorm / PyCharm
+.idea/
+*.iml
+
+# Eclipse
+.metadata/
+.classpath
+.project
+.settings/
