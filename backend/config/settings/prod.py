@@ -30,7 +30,3 @@ CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
-
-# GDAL blocking of file/network access needs GDAL >= 3.9; the API never opens
-# user-supplied spatial references, so the distro GDAL is acceptable.
-SILENCED_SYSTEM_CHECKS = ["gis.W001"]
