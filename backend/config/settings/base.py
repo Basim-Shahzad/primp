@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_prometheus",
     "apps.core",
+    "apps.accounts",
 ]
 
 MIDDLEWARE = [
@@ -70,6 +71,7 @@ DATABASES = {
 }
 DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
+AUTH_USER_MODEL = "accounts.User"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
@@ -130,6 +132,9 @@ ADMIN_ACCESS_TOKEN_LIFETIME = timedelta(minutes=env.int("ADMIN_ACCESS_TOKEN_MINU
 REFRESH_TOKEN_LIFETIME = timedelta(days=env.int("REFRESH_TOKEN_DAYS", default=30))
 ADMIN_REFRESH_TOKEN_LIFETIME = timedelta(hours=env.int("ADMIN_REFRESH_TOKEN_HOURS", default=8))
 REFRESH_COOKIE_NAME = env.str("REFRESH_COOKIE_NAME", default="primp_refresh")
+REFRESH_COOKIE_SECURE = env.bool("REFRESH_COOKIE_SECURE", default=True)
+REFRESH_COOKIE_PATH = "/api/v1/auth"
+REFRESH_CSRF_COOKIE_NAME = env.str("REFRESH_CSRF_COOKIE_NAME", default="primp_csrf")
 REFRESH_TOKEN_IN_BODY = env.bool("REFRESH_TOKEN_IN_BODY", default=False)
 
 # Logging

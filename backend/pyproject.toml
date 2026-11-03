@@ -75,7 +75,7 @@ python_version = "3.12"
 plugins = ["mypy_django_plugin.main"]
 strict = true
 files = ["apps", "config"]
-exclude = ["/migrations/", "/tests/"]
+exclude = ["/migrations/", "/tests/", "/factories.py"]
 warn_unused_ignores = true
 
 [[tool.mypy.overrides]]
@@ -88,7 +88,7 @@ django_settings_module = "config.settings.test"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
-addopts = "-ra --strict-markers --reuse-db"
+addopts = "-ra --strict-markers"
 markers = ["slow: slow benchmark tests"]
 testpaths = ["apps", "config", "tests"]
 
