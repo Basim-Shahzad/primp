@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.businesses",
     "apps.bookings",
+    "apps.reviews",
     "apps.accounts",
     "apps.notifications",
 ]
@@ -184,6 +185,8 @@ SMS_ADAPTER = env.str("SMS_ADAPTER", default="console")
 FRONTEND_URL = env.str("FRONTEND_URL", default="http://localhost:3000")
 GOOGLE_CLIENT_IDS = env.list("GOOGLE_CLIENT_IDS", default=[])
 BOOKING_HOLD_SECONDS = env.int("BOOKING_HOLD_SECONDS", default=300)
+FRONTEND_REVALIDATE_URL = env.str("FRONTEND_REVALIDATE_URL", default="")
+FRONTEND_REVALIDATE_SECRET = env.str("FRONTEND_REVALIDATE_SECRET", default="")
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
