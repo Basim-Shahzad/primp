@@ -18,3 +18,8 @@ api = NinjaAPI(
     ],
 )
 register_exception_handlers(api)
+
+from apps.accounts.api import auth_router, users_router  # noqa: E402
+
+api.add_router("/auth", auth_router)
+api.add_router("/users", users_router)
