@@ -21,3 +21,5 @@ MEDIA_ROOT = BASE_DIR / "media_test"  # noqa: F405
 LOGGING["root"]["level"] = "WARNING"  # type: ignore[index]  # noqa: F405
 THROTTLE_ANON = "100000/min"
 THROTTLE_USER = "100000/min"
+SMS_ADAPTER = "fake"
+GOOGLE_CLIENT_IDS = ["test-client-id.apps.googleusercontent.com"]

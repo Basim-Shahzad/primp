@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django_prometheus",
     "apps.core",
     "apps.accounts",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -154,6 +155,9 @@ LOGGING = {
     "loggers": {"django.db.backends": {"level": "WARNING"}},
 }
 
+SMS_ADAPTER = env.str("SMS_ADAPTER", default="console")
+FRONTEND_URL = env.str("FRONTEND_URL", default="http://localhost:3000")
+GOOGLE_CLIENT_IDS = env.list("GOOGLE_CLIENT_IDS", default=[])
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)
