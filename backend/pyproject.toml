@@ -24,6 +24,7 @@ dependencies = [
     "django-prometheus>=2.3",
     "gunicorn>=23",
     "uvicorn>=0.34",
+    "email-validator>=2.2",
 ]
 
 [project.optional-dependencies]
