@@ -24,11 +24,11 @@ from .google import verify_google_id_token
 from .models import (
     AuthProvider,
     CustomerProfile,
-    Role,
     TokenPurpose,
     User,
     UserStatus,
 )
+from .roles import Role
 from .tokens import SessionTokens, issue_session, revoke_all_sessions
 
 logger = logging.getLogger(__name__)

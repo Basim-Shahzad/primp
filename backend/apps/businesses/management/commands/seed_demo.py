@@ -14,7 +14,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.text import slugify
 
-from apps.accounts.models import AuthProvider, Role, User
+from apps.accounts.models import AuthProvider, User
+from apps.accounts.roles import Role
 from apps.businesses.models import (
     Business,
     GenderType,

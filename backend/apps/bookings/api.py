@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from ninja import Header, Query, Router, Status
 
 from apps.accounts.auth import jwt_auth
-from apps.accounts.models import Role
+from apps.accounts.roles import Role
 from apps.businesses import selectors as biz
 from apps.core.errors import AppError, not_found
 from apps.core.permissions import require_role

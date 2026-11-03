@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test cov run worker beat migrate openapi bench
+.PHONY: install lint typecheck test cov run worker beat migrate openapi bench check
 SETTINGS ?= config.settings.dev
 
 install:
@@ -35,3 +35,5 @@ openapi:
 
 bench:
 	uv run pytest -q -m slow -s
+
+check: lint typecheck test
