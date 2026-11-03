@@ -97,9 +97,10 @@ testpaths = ["apps", "config", "tests"]
 [tool.coverage.run]
 source = ["apps", "config"]
 branch = true
-omit = ["*/migrations/*", "*/tests/*", "*/factories.py", "config/settings/dev.py", "config/asgi.py", "config/wsgi.py"]
+omit = ["*/migrations/*", "*/tests/*", "*/factories.py", "config/settings/dev.py", "config/settings/prod.py", "config/asgi.py", "config/wsgi.py"]
 
 [tool.coverage.report]
+fail_under = 90
 show_missing = true
 skip_covered = true
 exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@abstractmethod"]
