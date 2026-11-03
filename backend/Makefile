@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test cov run worker beat migrate openapi bench check
+.PHONY: install lint typecheck test cov run worker beat migrate openapi bench check audit smoke
 SETTINGS ?= config.settings.dev
 
 install:
@@ -37,3 +37,9 @@ bench:
 	uv run pytest -q -m slow -s
 
 check: lint typecheck test
+
+audit:
+	uv run pip-audit
+
+smoke:
+	uv run python scripts/smoke_test.py
