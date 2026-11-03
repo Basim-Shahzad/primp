@@ -10,7 +10,7 @@ from apps.core.http import get_client_ip
 from apps.core.pagination import CursorParams
 from apps.core.permissions import require_role
 
-from . import otp, profile, services, tokens, wishlist
+from . import otp, profile, ratelimits, services, tokens, wishlist
 from .auth import jwt_auth
 from .cookies import check_csrf, clear_refresh_cookies, read_refresh_token, set_refresh_cookies
 from .roles import Role
@@ -65,6 +65,7 @@ def token_response(
 
 @auth_router.post("/refresh", response=TokenOut, auth=None)
 def refresh(request: HttpRequest, payload: RefreshIn | None = None) -> HttpResponse:
+    ratelimits.check(request, "refresh")
     raw, from_cookie = read_refresh_token(request, payload.refresh_token if payload else None)
     if raw is None:
         raise AppError("invalid_refresh_token", "Refresh token required.", 401)
@@ -78,6 +79,7 @@ def refresh(request: HttpRequest, payload: RefreshIn | None = None) -> HttpRespo
 
 @auth_router.post("/logout", auth=None, response={204: None})
 def logout(request: HttpRequest, payload: RefreshIn | None = None) -> HttpResponse:
+    ratelimits.check(request, "logout")
     raw, from_cookie = read_refresh_token(request, payload.refresh_token if payload else None)
     if from_cookie:
         check_csrf(request)
@@ -106,6 +108,7 @@ def login(request: HttpRequest, payload: LoginIn) -> HttpResponse:
 
 @auth_router.post("/email/verify", response=MessageOut, auth=None)
 def verify_email(request: HttpRequest, payload: TokenIn) -> MessageOut:
+    ratelimits.check(request, "email_verify")
     services.verify_email(payload.token)
     return MessageOut(detail="Email verified.")
 
@@ -118,6 +121,7 @@ def otp_request(request: HttpRequest, payload: OTPRequestIn) -> Status[OTPReques
 
 @auth_router.post("/otp/verify", response=TokenOut, auth=None)
 def otp_verify(request: HttpRequest, payload: OTPVerifyIn) -> HttpResponse:
+    ratelimits.check(request, "otp_verify")
     session, created = services.login_with_phone_otp(
         phone=payload.phone, code=payload.code, name=payload.name, request=request
     )
@@ -126,18 +130,21 @@ def otp_verify(request: HttpRequest, payload: OTPVerifyIn) -> HttpResponse:
 
 @auth_router.post("/google", response=TokenOut, auth=None)
 def google(request: HttpRequest, payload: GoogleIn) -> HttpResponse:
+    ratelimits.check(request, "google")
     session, created = services.login_with_google(id_token=payload.id_token, request=request)
     return token_response(request, session, is_new_user=created)
 
 
 @auth_router.post("/password/reset/request", response=MessageOut, auth=None)
 def password_reset_request(request: HttpRequest, payload: PasswordResetRequestIn) -> MessageOut:
+    ratelimits.check(request, "password_reset_request")
     password_reset_task.delay(payload.email)
     return MessageOut(detail="If the address is registered, a reset link has been sent.")
 
 
 @auth_router.post("/password/reset/confirm", response=MessageOut, auth=None)
 def password_reset_confirm(request: HttpRequest, payload: PasswordResetConfirmIn) -> MessageOut:
+    ratelimits.check(request, "password_reset_confirm")
     services.confirm_password_reset(token=payload.token, new_password=payload.new_password)
     return MessageOut(detail="Password updated.")
 
