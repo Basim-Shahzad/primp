@@ -111,7 +111,7 @@ include_external_packages = false
 name = "accounts does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.accounts"]
-forbidden_modules = ["apps.geo.models", "apps.catalog.models", "apps.businesses.models", "apps.notifications.models"]
+forbidden_modules = ["apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -123,40 +123,25 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
-name = "geo does not import other apps' models"
+name = "bookings does not import other apps' models"
 type = "forbidden"
-source_modules = ["apps.geo"]
-forbidden_modules = ["apps.accounts.models", "apps.catalog.models", "apps.businesses.models", "apps.notifications.models"]
+source_modules = ["apps.bookings"]
+forbidden_modules = ["apps.accounts.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
-    "apps.geo.tests.** -> **",
-    "apps.geo.factories -> **",
-    "apps.geo.migrations.** -> **",
-    "apps.geo.management.** -> **",
-    "apps.geo.admin -> **",
-]
-
-[[tool.importlinter.contracts]]
-name = "catalog does not import other apps' models"
-type = "forbidden"
-source_modules = ["apps.catalog"]
-forbidden_modules = ["apps.accounts.models", "apps.geo.models", "apps.businesses.models", "apps.notifications.models"]
-allow_indirect_imports = true
-unmatched_ignore_imports_alerting = "none"
-ignore_imports = [
-    "apps.catalog.tests.** -> **",
-    "apps.catalog.factories -> **",
-    "apps.catalog.migrations.** -> **",
-    "apps.catalog.management.** -> **",
-    "apps.catalog.admin -> **",
+    "apps.bookings.tests.** -> **",
+    "apps.bookings.factories -> **",
+    "apps.bookings.migrations.** -> **",
+    "apps.bookings.management.** -> **",
+    "apps.bookings.admin -> **",
 ]
 
 [[tool.importlinter.contracts]]
 name = "businesses does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.businesses"]
-forbidden_modules = ["apps.accounts.models", "apps.geo.models", "apps.catalog.models", "apps.notifications.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.catalog.models", "apps.geo.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -168,10 +153,55 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "catalog does not import other apps' models"
+type = "forbidden"
+source_modules = ["apps.catalog"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.geo.models"]
+allow_indirect_imports = true
+unmatched_ignore_imports_alerting = "none"
+ignore_imports = [
+    "apps.catalog.tests.** -> **",
+    "apps.catalog.factories -> **",
+    "apps.catalog.migrations.** -> **",
+    "apps.catalog.management.** -> **",
+    "apps.catalog.admin -> **",
+]
+
+[[tool.importlinter.contracts]]
+name = "core does not import other apps' models"
+type = "forbidden"
+source_modules = ["apps.core"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models"]
+allow_indirect_imports = true
+unmatched_ignore_imports_alerting = "none"
+ignore_imports = [
+    "apps.core.tests.** -> **",
+    "apps.core.factories -> **",
+    "apps.core.migrations.** -> **",
+    "apps.core.management.** -> **",
+    "apps.core.admin -> **",
+]
+
+[[tool.importlinter.contracts]]
+name = "geo does not import other apps' models"
+type = "forbidden"
+source_modules = ["apps.geo"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models"]
+allow_indirect_imports = true
+unmatched_ignore_imports_alerting = "none"
+ignore_imports = [
+    "apps.geo.tests.** -> **",
+    "apps.geo.factories -> **",
+    "apps.geo.migrations.** -> **",
+    "apps.geo.management.** -> **",
+    "apps.geo.admin -> **",
+]
+
+[[tool.importlinter.contracts]]
 name = "notifications does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.notifications"]
-forbidden_modules = ["apps.accounts.models", "apps.geo.models", "apps.catalog.models", "apps.businesses.models"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
