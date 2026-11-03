@@ -71,3 +71,16 @@ class ReviewFlag(models.Model):
 
     def __str__(self) -> str:
         return f"{self.review_id}:{self.reason}"
+
+
+class ReviewOutbox(models.Model):
+    """Events other apps pick up later (Plan 6.3 turns `review_flagged` into a support ticket)."""
+
+    event = models.CharField(max_length=50)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="+")
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.event}:{self.review_id}"
