@@ -31,3 +31,11 @@ api.add_router("/businesses", availability_router)
 from apps.businesses.api import search_router  # noqa: E402
 
 api.add_router("/search", search_router)
+
+from apps.businesses.api import businesses_router  # noqa: E402
+
+api.add_router("/businesses", businesses_router)
+
+from apps.reviews.api import businesses_router as reviews_router  # noqa: E402
+
+api.add_router("/businesses", reviews_router)
