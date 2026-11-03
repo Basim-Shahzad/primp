@@ -53,3 +53,7 @@ from apps.reviews.api import reviews_router  # noqa: E402
 
 api.add_router("/appointments", review_appointments_router)
 api.add_router("/reviews", reviews_router)
+
+from apps.loyalty.api import users_router as loyalty_users_router  # noqa: E402
+
+api.add_router("/users", loyalty_users_router)

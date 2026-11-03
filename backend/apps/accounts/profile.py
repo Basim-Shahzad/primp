@@ -16,7 +16,7 @@ from apps.core.images import process_image
 from apps.geo import selectors as geo
 from apps.notifications.services import queue_email
 
-from . import onetime, otp
+from . import events, onetime, otp
 from .models import (
     AccountDeletionRequest,
     CustomerProfile,
@@ -70,6 +70,7 @@ def update_profile(
                     profile.default_area = None
                 profile.default_city = city
     profile.save()
+    events.emit_profile_updated(user.pk)
     return profile
 
 
@@ -91,6 +92,7 @@ def set_photo(user: User, data: bytes) -> CustomerProfile:
     )
     profile.photo = path
     profile.save(update_fields=["photo", "updated_at"])
+    events.emit_profile_updated(user.pk)
     if old:
         transaction.on_commit(lambda: default_storage.delete(old))
     return profile
@@ -125,6 +127,7 @@ def confirm_phone_change(user: User, phone: str, code: str) -> User:
     except IntegrityError as exc:
         raise AppError("phone_taken", _("This number is already in use."), 409) from exc
     audit.record("user.phone_changed", actor_id=user.pk, target_type="user", target_id=user.pk)
+    events.emit_profile_updated(user.pk)
     return user
 
 
@@ -160,6 +163,7 @@ def confirm_email_change(raw: str) -> User:
         except IntegrityError as exc:
             raise AppError("email_taken", _("This email is already in use."), 409) from exc
     audit.record("user.email_changed", actor_id=user.pk, target_type="user", target_id=user.pk)
+    events.emit_profile_updated(user.pk)
     return user
 
 

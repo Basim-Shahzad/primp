@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from celery.schedules import crontab
 from kombu import Queue
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
     "apps.bookings",
     "apps.reviews",
     "apps.payments",
+    "apps.loyalty",
     "apps.accounts",
     "apps.notifications",
 ]
@@ -156,6 +158,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "schedule": 300.0,
         "options": {"queue": "default"},
     },
+    "loyalty-reconcile": {
+        "task": "apps.loyalty.tasks.reconcile_accounts",
+        "schedule": crontab(hour=21, minute=30),  # 02:30 Asia/Karachi
+        "options": {"queue": "bulk"},
+    },
 }
 
 # Auth / JWT
@@ -205,6 +212,7 @@ NOTIFICATIONS_RAISE_ON_RENDER_ERROR = env.bool("NOTIFICATIONS_RAISE_ON_RENDER_ER
 SMS_API_URL = env.str("SMS_API_URL", default="")
 SMS_API_KEY = env.str("SMS_API_KEY", default="")
 SMS_SENDER_ID = env.str("SMS_SENDER_ID", default="Primp")
+LOYALTY_RAISE_ON_ERROR = env.bool("LOYALTY_RAISE_ON_ERROR", default=False)
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)

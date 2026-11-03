@@ -19,7 +19,7 @@ from apps.core.errors import AppError
 from apps.core.http import get_client_ip
 from apps.notifications.services import queue_email
 
-from . import onetime, otp
+from . import events, onetime, otp
 from .google import verify_google_id_token
 from .models import (
     AuthProvider,
@@ -140,6 +140,7 @@ def verify_email(raw_token: str) -> User:
         user = token.user
         user.is_email_verified = True
         user.save(update_fields=["is_email_verified", "updated_at"])
+        events.emit_profile_updated(user.pk)
     return user
 
 

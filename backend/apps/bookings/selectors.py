@@ -61,6 +61,7 @@ class AppointmentBrief:
     total_price: int
     is_late_cancellation: bool
     cancellation_reason: str
+    payment_status: str = ""
 
     def payload(self) -> dict[str, Any]:
         """Values for notification templates, in the business timezone."""
@@ -103,7 +104,14 @@ def appointment_brief(appointment_id: int) -> AppointmentBrief | None:
         total_price=a.total_price,
         is_late_cancellation=a.is_late_cancellation,
         cancellation_reason=a.cancellation_reason,
+        payment_status=a.payment_status,
     )
+
+
+def completed_count(customer_id: int) -> int:
+    return Appointment.objects.filter(
+        customer_id=customer_id, status=AppointmentStatus.COMPLETED
+    ).count()
 
 
 def due_for_reminder(offset_seconds: int, now: datetime, grace_seconds: int = 1800) -> list[int]:
