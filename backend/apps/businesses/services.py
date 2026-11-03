@@ -1,8 +1,11 @@
+from decimal import Decimal
+
 from django.utils.translation import gettext_lazy as _
 
 from apps.core.errors import AppError
 
-from .models import Service, Staff, StaffService
+from . import pagecache
+from .models import Business, Service, Staff, StaffService
 
 
 def link_staff_service(staff: Staff, service: Service) -> StaffService:
@@ -15,3 +18,8 @@ def link_staff_service(staff: Staff, service: Service) -> StaffService:
         )
     link, _created = StaffService.objects.get_or_create(staff=staff, service=service)
     return link
+
+
+def set_rating(business_id: int, avg: Decimal, count: int) -> None:
+    Business.objects.filter(pk=business_id).update(rating_avg=avg, rating_count=count)
+    pagecache.invalidate(business_id)
