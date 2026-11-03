@@ -105,3 +105,58 @@ class RescheduleOut(Schema):
     applied: bool
     appointment: AppointmentOut
     request: RescheduleRequestOut | None
+
+
+class TimelineEventOut(Schema):
+    status: str
+    from_status: str
+    at: datetime
+    actor_role: str
+    note: str
+
+
+class ContactOut(Schema):
+    phone: str
+    whatsapp: str
+    address: str
+    lat: float
+    lng: float
+
+
+class ActionsOut(Schema):
+    can_cancel: bool
+    can_reschedule: bool
+    can_review: bool
+
+
+class AppointmentDetailOut(AppointmentOut):
+    timeline: list[TimelineEventOut]
+    contact: ContactOut
+    actions: ActionsOut
+    has_review: bool
+    pending_reschedule: RescheduleRequestOut | None = None
+
+
+class AppointmentPageOut(Schema):
+    items: list[AppointmentOut]
+    next_cursor: str | None
+
+
+class RebookServiceOut(Schema):
+    id: int
+    name: str
+    price: int
+    duration_minutes: int
+    is_active: bool
+
+
+class RebookDraftOut(Schema):
+    business_id: uuid.UUID
+    business_slug: str
+    business_name: str
+    service_ids: list[int]
+    services: list[RebookServiceOut]
+    staff_id: int | None
+    staff_available: bool
+    unavailable_service_ids: list[int]
+    can_book: bool
