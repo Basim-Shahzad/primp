@@ -1,3 +1,6 @@
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
+
 from .models import Area, City, CityVisibility
 
 
@@ -16,3 +19,21 @@ def visible_cities() -> list[City]:
 def public_city_lookups(prefix: str = "city") -> dict[str, object]:
     """ORM lookups restricting a queryset to businesses in active, public cities."""
     return {f"{prefix}__is_active": True, f"{prefix}__visibility": CityVisibility.PUBLIC}
+
+
+def nearest_city_id(point: Point) -> int | None:
+    """City of the active area whose centre is closest to the point."""
+    area = (
+        Area.objects.filter(is_active=True, city__is_active=True)
+        .annotate(d=Distance("centre", point))
+        .order_by("d")
+        .first()
+    )
+    return area.city_id if area else None
+
+
+def areas_in_city(city_id: int, *, exclude_id: int | None = None) -> list[Area]:
+    qs = Area.objects.filter(is_active=True, city_id=city_id)
+    if exclude_id is not None:
+        qs = qs.exclude(pk=exclude_id)
+    return list(qs.order_by("name")[:20])
