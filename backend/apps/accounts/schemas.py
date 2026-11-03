@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated
 
 from ninja import Field, Schema
@@ -135,3 +136,27 @@ class UserOut(Schema):
             default_city_id=profile.default_city_id if profile else None,
             default_area_id=profile.default_area_id if profile else None,
         )
+
+
+class WishlistItemOut(Schema):
+    id: uuid.UUID
+    slug: str
+    name: str
+    area: str | None
+    rating_avg: float
+    rating_count: int
+    starting_price: int | None
+    is_verified: bool
+    cover_photo_url: str | None
+    next_available_slot: datetime | None
+    added_at: datetime
+
+
+class WishlistPageOut(Schema):
+    items: list[WishlistItemOut]
+    next_cursor: str | None
+
+
+class WishlistStateOut(Schema):
+    business_id: uuid.UUID
+    wishlisted: bool

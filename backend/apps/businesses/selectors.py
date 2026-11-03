@@ -178,3 +178,13 @@ def shortest_service(business_id: int) -> ServiceInfo | None:
         .first()
     )
     return ServiceInfo(s.pk, s.name, s.price, s.duration_minutes) if s else None
+
+
+def public_business_id(public_id: uuid.UUID) -> int | None:
+    """Database id of a publicly visible business, else None."""
+    return public_businesses().filter(public_id=public_id).values_list("pk", flat=True).first()
+
+
+def any_business_id(public_id: uuid.UUID) -> int | None:
+    """Database id of a business regardless of visibility (for removals)."""
+    return Business.objects.filter(public_id=public_id).values_list("pk", flat=True).first()

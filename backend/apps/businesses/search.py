@@ -406,3 +406,15 @@ def suggestions_for(p: SearchParams) -> list[dict[str, Any]]:
                 )
         out.extend(sorted(related, key=lambda s: -int(s["count"]))[:3])
     return out
+
+
+def cards_for(
+    business_ids: list[int], user_id: int | None, now: datetime | None = None
+) -> list[SearchItem]:
+    """Result cards for specific businesses, in the given order (only publicly visible ones)."""
+    now = now or timezone.now()
+    rows = {
+        b.pk: b for b in build_queryset(SearchParams.model_validate({})).filter(pk__in=business_ids)
+    }
+    ordered = [rows[i] for i in business_ids if i in rows]
+    return _assemble(ordered, user_id, now)

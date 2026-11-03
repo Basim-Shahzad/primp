@@ -85,3 +85,11 @@ def frozen():  # type: ignore[no-untyped-def]
 
     with time_machine.travel(NOW, tick=False) as t:
         yield t
+
+
+@pytest.fixture
+def long_tokens(settings):  # type: ignore[no-untyped-def]
+    """Tests that travel through time keep their access tokens valid across the jumps."""
+    from datetime import timedelta
+
+    settings.ACCESS_TOKEN_LIFETIME = timedelta(days=3)
