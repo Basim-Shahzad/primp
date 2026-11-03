@@ -23,3 +23,7 @@ from apps.accounts.api import auth_router, users_router  # noqa: E402
 
 api.add_router("/auth", auth_router)
 api.add_router("/users", users_router)
+
+from apps.bookings.api import businesses_router as availability_router  # noqa: E402
+
+api.add_router("/businesses", availability_router)
