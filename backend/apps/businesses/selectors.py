@@ -55,7 +55,7 @@ class ServiceInfo:
     duration_minutes: int
 
 
-def _config(b: Business) -> BookingConfig:
+def to_booking_config(b: Business) -> BookingConfig:
     return BookingConfig(
         id=b.pk,
         public_id=b.public_id,
@@ -80,7 +80,7 @@ def get_booking_config(ref: str | uuid.UUID) -> BookingConfig | None:
     except ValueError:
         return None
     business = public_businesses().filter(public_id=public_id).first()
-    return _config(business) if business else None
+    return to_booking_config(business) if business else None
 
 
 def get_booking_config_by_id(business_id: int, *, lock: bool = False) -> BookingConfig | None:
@@ -88,7 +88,7 @@ def get_booking_config_by_id(business_id: int, *, lock: bool = False) -> Booking
     if lock:
         qs = qs.select_for_update()
     business = qs.first()
-    return _config(business) if business else None
+    return to_booking_config(business) if business else None
 
 
 def get_services(
@@ -157,3 +157,24 @@ def cheapest_shortest_service_id(business_id: int) -> int | None:
         .first()
     )
     return int(row) if row is not None else None
+
+
+def opening_windows_all(business_id: int) -> dict[int, dict[int | None, list[tuple[time, time]]]]:
+    """All shifts keyed by weekday then staff id (None = business-wide)."""
+    result: dict[int, dict[int | None, list[tuple[time, time]]]] = {}
+    rows = OpeningHours.objects.filter(business_id=business_id).order_by("opens_at")
+    for row in rows:
+        result.setdefault(row.weekday, {}).setdefault(row.staff_id, []).append(
+            (row.opens_at, row.closes_at)
+        )
+    return result
+
+
+def shortest_service(business_id: int) -> ServiceInfo | None:
+    """The active service with the shortest duration (ties: lowest id)."""
+    s = (
+        Service.objects.filter(business_id=business_id, is_active=True)
+        .order_by("duration_minutes", "id")
+        .first()
+    )
+    return ServiceInfo(s.pk, s.name, s.price, s.duration_minutes) if s else None
