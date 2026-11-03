@@ -1,14 +1,17 @@
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Status
+from ninja import File, Router, Status, UploadedFile
 
 from apps.core.errors import AppError
 from apps.core.http import get_client_ip
 
-from . import otp, services, tokens
+from . import otp, profile, services, tokens
 from .auth import jwt_auth
 from .cookies import check_csrf, clear_refresh_cookies, read_refresh_token, set_refresh_cookies
 from .schemas import (
+    DeletionIn,
+    DeletionOut,
+    EmailChangeIn,
     GoogleIn,
     LoginIn,
     MessageOut,
@@ -17,6 +20,9 @@ from .schemas import (
     OTPVerifyIn,
     PasswordResetConfirmIn,
     PasswordResetRequestIn,
+    PhoneChangeIn,
+    PhoneConfirmIn,
+    ProfilePatchIn,
     RefreshIn,
     RegisterIn,
     TokenIn,
@@ -130,3 +136,56 @@ def password_reset_confirm(request: HttpRequest, payload: PasswordResetConfirmIn
 @users_router.get("/me", response=UserOut, auth=jwt_auth)
 def me(request: HttpRequest) -> UserOut:
     return UserOut.from_user(request.auth)  # type: ignore[attr-defined]
+
+
+@users_router.patch("/me", response=UserOut, auth=jwt_auth)
+def update_me(request: HttpRequest, payload: ProfilePatchIn) -> UserOut:
+    user = request.auth  # type: ignore[attr-defined]
+    profile.update_profile(
+        user,
+        name=payload.name,
+        default_city_id=payload.default_city_id,
+        default_area_id=payload.default_area_id,
+        fields_set=payload.model_fields_set,
+    )
+    return UserOut.from_user(user)
+
+
+@users_router.post("/me/photo", response=UserOut, auth=jwt_auth)
+def upload_photo(request: HttpRequest, file: File[UploadedFile]) -> UserOut:
+    user = request.auth  # type: ignore[attr-defined]
+    profile.set_photo(user, file.read())
+    return UserOut.from_user(user)
+
+
+@users_router.post("/me/phone/change", response={202: OTPRequestOut}, auth=jwt_auth)
+def phone_change(request: HttpRequest, payload: PhoneChangeIn) -> Status[OTPRequestOut]:
+    profile.request_phone_change(request.auth, payload.phone, get_client_ip(request))  # type: ignore[attr-defined]
+    return Status(202, OTPRequestOut(expires_in=otp.OTP_TTL, resend_in=otp.RESEND_COOLDOWN))
+
+
+@users_router.post("/me/phone/confirm", response=UserOut, auth=jwt_auth)
+def phone_confirm(request: HttpRequest, payload: PhoneConfirmIn) -> UserOut:
+    user = profile.confirm_phone_change(request.auth, payload.phone, payload.code)  # type: ignore[attr-defined]
+    return UserOut.from_user(user)
+
+
+@users_router.post("/me/email/change", response={202: MessageOut}, auth=jwt_auth)
+def email_change(request: HttpRequest, payload: EmailChangeIn) -> Status[MessageOut]:
+    profile.request_email_change(request.auth, payload.email)  # type: ignore[attr-defined]
+    return Status(202, MessageOut(detail="Confirmation link sent to the new address."))
+
+
+@users_router.post("/me/email/confirm", response=UserOut, auth=None)
+def email_confirm(request: HttpRequest, payload: TokenIn) -> UserOut:
+    return UserOut.from_user(profile.confirm_email_change(payload.token))
+
+
+@users_router.post("/me/deletion-request", response={202: DeletionOut}, auth=jwt_auth)
+def deletion_request(
+    request: HttpRequest, payload: DeletionIn | None = None
+) -> Status[DeletionOut]:
+    record = profile.request_deletion(request.auth, payload.reason if payload else "")  # type: ignore[attr-defined]
+    return Status(
+        202, DeletionOut(status=record.status, requested_at=record.created_at.isoformat())
+    )

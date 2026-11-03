@@ -119,6 +119,12 @@ class CustomerProfile(TimeStampedModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     name = models.CharField(max_length=100, blank=True)
     photo = models.CharField(max_length=255, blank=True)
+    default_city = models.ForeignKey(
+        "geo.City", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    default_area = models.ForeignKey(
+        "geo.Area", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
     referral_code = models.CharField(max_length=12, unique=True, editable=False)
     referred_by = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="referrals"
@@ -183,3 +189,31 @@ class OneTimeToken(models.Model):
 
     def __str__(self) -> str:
         return f"{self.purpose} for {self.user_id}"
+
+
+class DeletionStatus(models.TextChoices):
+    PENDING = "pending", _("Pending")
+    PROCESSED = "processed", _("Processed")
+    CANCELLED = "cancelled", _("Cancelled")
+
+
+class AccountDeletionRequest(TimeStampedModel):
+    """Records a customer's request; processing is an admin task (Plan 6.3)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="deletion_requests")
+    status = models.CharField(
+        max_length=10, choices=DeletionStatus.choices, default=DeletionStatus.PENDING
+    )
+    reason = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user"],
+                condition=Q(status="pending"),
+                name="one_pending_deletion_request_per_user",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_id} ({self.status})"
