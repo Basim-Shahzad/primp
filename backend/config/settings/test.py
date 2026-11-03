@@ -19,3 +19,5 @@ CELERY_TASK_EAGER_PROPAGATES = True
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 MEDIA_ROOT = BASE_DIR / "media_test"  # noqa: F405
 LOGGING["root"]["level"] = "WARNING"  # type: ignore[index]  # noqa: F405
+THROTTLE_ANON = "100000/min"
+THROTTLE_USER = "100000/min"
