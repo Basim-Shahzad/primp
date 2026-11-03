@@ -124,3 +124,20 @@ def due_for_reminder(offset_seconds: int, now: datetime, grace_seconds: int = 18
         .filter(created_at__lte=F("scheduled_start") - timedelta(seconds=offset_seconds))
         .values_list("pk", flat=True)
     )
+
+
+@dataclass(frozen=True)
+class AppointmentRef:
+    id: int
+    business_id: int
+    customer_id: int
+    status: str
+    scheduled_start: datetime
+
+
+def customer_appointment(user_id: int, public_id: str) -> AppointmentRef | None:
+    """The caller's own appointment, or None (callers answer 404 so existence is not leaked)."""
+    a = Appointment.objects.filter(public_id=public_id, customer_id=user_id).first()
+    if a is None:
+        return None
+    return AppointmentRef(a.pk, a.business_id, a.customer_id, a.status, a.scheduled_start)
