@@ -144,3 +144,10 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+# local artefacts
+dump.rdb
+.coverage
+htmlcov/
+media/
+media_test/
+staticfiles/
