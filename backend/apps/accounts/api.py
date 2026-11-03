@@ -1,13 +1,19 @@
+import uuid
+from typing import Any
+
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from ninja import File, Router, Status, UploadedFile
+from ninja import File, Query, Router, Status, UploadedFile
 
 from apps.core.errors import AppError
 from apps.core.http import get_client_ip
+from apps.core.pagination import CursorParams
+from apps.core.permissions import require_role
 
-from . import otp, profile, services, tokens
+from . import otp, profile, services, tokens, wishlist
 from .auth import jwt_auth
 from .cookies import check_csrf, clear_refresh_cookies, read_refresh_token, set_refresh_cookies
+from .roles import Role
 from .schemas import (
     DeletionIn,
     DeletionOut,
@@ -28,6 +34,9 @@ from .schemas import (
     TokenIn,
     TokenOut,
     UserOut,
+    WishlistItemOut,
+    WishlistPageOut,
+    WishlistStateOut,
 )
 from .tasks import password_reset_task
 
@@ -189,3 +198,53 @@ def deletion_request(
     return Status(
         202, DeletionOut(status=record.status, requested_at=record.created_at.isoformat())
     )
+
+
+def _customer(request: HttpRequest) -> Any:
+    return require_role(Role.CUSTOMER)(request)
+
+
+@users_router.get("/me/wishlist", auth=jwt_auth, response=WishlistPageOut)
+def my_wishlist(request: HttpRequest, params: Query[CursorParams]) -> WishlistPageOut:
+    user = _customer(request)
+    cards, result = wishlist.page(user.pk, params.cursor, params.limit)
+    added = {w.business_id: w.created_at for w in result.items}
+    return WishlistPageOut(
+        items=[
+            WishlistItemOut(
+                id=c.business.public_id,
+                slug=c.business.slug,
+                name=c.business.name,
+                area=c.business.area.name if c.business.area else None,
+                rating_avg=float(c.business.rating_avg),
+                rating_count=c.business.rating_count,
+                starting_price=c.starting_price,
+                is_verified=c.business.is_verified,
+                cover_photo_url=c.cover_url,
+                next_available_slot=c.next_slot,
+                added_at=added[c.business.pk],
+            )
+            for c in cards
+        ],
+        next_cursor=result.next_cursor,
+    )
+
+
+@users_router.post(
+    "/me/wishlist/{business_id}",
+    auth=jwt_auth,
+    response={200: WishlistStateOut, 201: WishlistStateOut},
+)
+def add_to_wishlist(request: HttpRequest, business_id: uuid.UUID) -> Status[WishlistStateOut]:
+    user = _customer(request)
+    created = wishlist.add(user.pk, business_id)
+    return Status(
+        201 if created else 200, WishlistStateOut(business_id=business_id, wishlisted=True)
+    )
+
+
+@users_router.delete("/me/wishlist/{business_id}", auth=jwt_auth, response={204: None})
+def remove_from_wishlist(request: HttpRequest, business_id: uuid.UUID) -> Status[None]:
+    user = _customer(request)
+    wishlist.remove(user.pk, business_id)
+    return Status(204, None)

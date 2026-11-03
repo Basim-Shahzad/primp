@@ -33,12 +33,6 @@ pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("frozen", "long_tok
 BASE = "/api/v1/appointments"
 
 
-@pytest.fixture
-def long_tokens(settings):  # type: ignore[no-untyped-def]
-    """Tests travel through time; keep access tokens valid across the jumps."""
-    settings.ACCESS_TOKEN_LIFETIME = timedelta(days=3)
-
-
 def patch(path: str, data: dict | None, headers: dict[str, str]):  # type: ignore[no-untyped-def,type-arg]
     return Client().patch(
         f"{BASE}/{path}", data=json.dumps(data or {}), content_type="application/json", **headers
