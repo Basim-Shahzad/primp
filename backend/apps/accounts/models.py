@@ -162,3 +162,24 @@ class RefreshToken(models.Model):
 
     def __str__(self) -> str:
         return f"{self.family_id} ({self.user_id})"
+
+
+class TokenPurpose(models.TextChoices):
+    EMAIL_VERIFY = "email_verify", _("Email verification")
+    PASSWORD_RESET = "password_reset", _("Password reset")
+    EMAIL_CHANGE = "email_change", _("Email change")
+
+
+class OneTimeToken(models.Model):
+    """Single-use, expiring token sent by email. Only the hash is stored."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="one_time_tokens")
+    purpose = models.CharField(max_length=20, choices=TokenPurpose.choices)
+    token_hash = models.CharField(max_length=64, unique=True)
+    payload = models.JSONField(default=dict, blank=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self) -> str:
+        return f"{self.purpose} for {self.user_id}"
