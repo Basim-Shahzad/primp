@@ -20,6 +20,7 @@ CUSTOMER_SMS = {
     "provider_reschedule_requested": "Primp: {customer_name} asks to move {services} to {date} at {time}. Please respond.",
     "new_review": "Primp: {customer_name} left a {rating}-star review for {business_name}.",
     "pending_escalation": "Primp: {customer_name} is waiting for you to accept {services} on {date} at {time}. Please respond.",
+    "business_suspended_notice": "Primp: {business_name} is temporarily unavailable. Your booking on {date} at {time} may be affected; please contact support if you need help.",
     "booking_reassigned": "Primp: your {services} at {business_name} on {date} at {time} is now with {staff_name}.",
 }
 
@@ -64,6 +65,14 @@ EMAIL = {
     "review_prompt": (
         "How was your visit?",
         "Hi {customer_name}, tell others about {business_name}. Leave a review on Primp.",
+    ),
+    "business_suspended_notice": (
+        "Your booking may be affected",
+        "Hi {customer_name}, {business_name} is temporarily unavailable. Your booking on {date} at {time} may be affected. Please contact Primp support if you need help.",
+    ),
+    "customer_suspended_notice": (
+        "A customer was suspended",
+        "The customer booked for {services} on {date} at {time} has been suspended by Primp support. Contact support if you have questions.",
     ),
     "pending_escalation": (
         "A booking is waiting for you",

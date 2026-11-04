@@ -51,3 +51,17 @@ class ReviewBrief:
 def review_brief(review_id: int) -> ReviewBrief | None:
     row = Review.objects.filter(pk=review_id).values("business_id", "customer_id", "rating").first()
     return ReviewBrief(**row) if row else None
+
+
+def customer_reviews(customer_id: int, limit: int = 10) -> list[dict[str, object]]:
+    rows = Review.objects.filter(customer_id=customer_id).select_related("business")
+    return [
+        {
+            "id": r.public_id,
+            "business": r.business.name,
+            "rating": r.rating,
+            "status": r.status,
+            "created_at": r.created_at,
+        }
+        for r in rows.order_by("-created_at", "-id")[:limit]
+    ]
