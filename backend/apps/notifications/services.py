@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from apps.accounts import selectors as accounts
 
-from . import preferences
+from . import events, preferences
 from .adapters import SMSDeliveryError, get_sms_adapter
 from .models import Channel, Notification, NotificationStatus, Reminder
 from .templating import MissingPlaceholder, TemplateNotFound, active_channels, render, render_text
@@ -114,6 +114,7 @@ def _fail(notification: Notification, error: str) -> str:
     notification.last_error = error[:1000]
     notification.admin_flagged = True
     notification.save(update_fields=["status", "last_error", "attempts", "admin_flagged"])
+    events.emit_failed(notification.pk)
     return FAILED
 
 

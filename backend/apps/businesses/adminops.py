@@ -228,3 +228,35 @@ def notify_owners_unavailable(
         touch(business.pk)
         count += 1
     return count
+
+
+def business_for_requester(public_id: str, user_id: int) -> int | None:
+    """Business pk if the user owns it or has a booking there."""
+    import uuid
+
+    from django.db.models import Q
+
+    try:
+        ref = uuid.UUID(str(public_id))
+    except ValueError:
+        return None
+    row = (
+        Business.objects.filter(public_id=ref)
+        .filter(Q(owner_id=user_id) | Q(appointments__customer_id=user_id))
+        .values_list("pk", flat=True)
+        .first()
+    )
+    return int(row) if row is not None else None
+
+
+def business_summary(business_id: int) -> dict[str, Any]:
+    b = Business.objects.select_related("city").filter(pk=business_id).first()
+    if b is None:
+        return {}
+    return {
+        "id": b.public_id,
+        "name": b.name,
+        "city": b.city.name,
+        "status": b.verification_status,
+        "is_listed": b.is_listed,
+    }

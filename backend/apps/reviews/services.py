@@ -190,7 +190,9 @@ def flag_review(*, user_id: int, review_public_id: str, reason: str) -> ReviewFl
     return flag
 
 
-def moderate_review(review_id: int, status: str, actor_id: int, reason: str = "") -> Review:
+def moderate_review(
+    review_id: int, status: str, actor_id: int, reason: str = "", ip: str | None = None
+) -> Review:
     """Hide/remove/restore a review (exposed by Plan 6.3). Keeps the aggregate rating exact."""
     if status not in ReviewStatus.values:
         raise AppError(
@@ -211,5 +213,6 @@ def moderate_review(review_id: int, status: str, actor_id: int, reason: str = ""
             target_id=review.pk,
             before={"status": before},
             after={"status": status, "reason": reason},
+            ip=ip,
         )
     return review

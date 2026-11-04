@@ -468,7 +468,7 @@ def test_flag_creates_flag_outbox_and_event(run_commit) -> None:  # type: ignore
     assert (
         row.event == "review_flagged"
         and row.payload["reason"] == "fake"
-        and row.processed_at is None
+        and row.processed_at is not None  # consumed by the backoffice ticket consumer
     )
     assert [{k: v for k, v in e.items() if k != "signal"} for e in seen] == [
         {"review_id": review.pk, "reporter_id": owner.pk, "reason": "fake"}

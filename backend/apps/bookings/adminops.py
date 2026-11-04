@@ -68,3 +68,46 @@ def scrub_customer_contact(user_id: int) -> int:
             walk_in_name="", walk_in_phone="", business_note=""
         )
     )
+
+
+def appointment_for_requester(public_id: str, user_id: int) -> tuple[int, int] | None:
+    """(appointment pk, business pk) if the user is the customer or the business owner."""
+    import uuid
+
+    from django.db.models import Q
+
+    try:
+        ref = uuid.UUID(str(public_id))
+    except ValueError:
+        return None
+    row = (
+        Appointment.objects.filter(public_id=ref)
+        .filter(Q(customer_id=user_id) | Q(business__owner_id=user_id))
+        .values_list("pk", "business_id")
+        .first()
+    )
+    return (int(row[0]), int(row[1])) if row else None
+
+
+def appointment_summary(appointment_id: int) -> dict[str, Any]:
+    a = Appointment.objects.select_related("business").filter(pk=appointment_id).first()
+    if a is None:
+        return {}
+    return {
+        "id": a.public_id,
+        "status": a.status,
+        "business": a.business.name,
+        "start": a.scheduled_start,
+        "total_price": a.total_price,
+        "payment_status": a.payment_status,
+    }
+
+
+def appointment_refs(appointment_id: int) -> tuple[int, int | None] | None:
+    """(business pk, customer pk) of an appointment."""
+    row = (
+        Appointment.objects.filter(pk=appointment_id)
+        .values_list("business_id", "customer_id")
+        .first()
+    )
+    return (int(row[0]), row[1]) if row else None

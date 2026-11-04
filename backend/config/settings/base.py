@@ -191,6 +191,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "schedule": crontab(hour=21, minute=10),  # 02:10 Asia/Karachi
         "options": {"queue": "bulk"},
     },
+    "ticket-flag-sweep": {
+        "task": "apps.backoffice.tasks.sweep_review_flags",
+        "schedule": 300.0,
+        "options": {"queue": "default"},
+    },
     "loyalty-reconcile": {
         "task": "apps.loyalty.tasks.reconcile_accounts",
         "schedule": crontab(hour=21, minute=30),  # 02:30 Asia/Karachi
@@ -253,6 +258,17 @@ CITY_MAX_RADIUS_KM = env.float("CITY_MAX_RADIUS_KM", default=60.0)
 PRIVATE_URL_TTL_SECONDS = env.int("PRIVATE_URL_TTL_SECONDS", default=300)
 DOCUMENT_MAX_BYTES = env.int("DOCUMENT_MAX_BYTES", default=10 * 1024 * 1024)
 ANALYTICS_RAISE_ON_ERROR = env.bool("ANALYTICS_RAISE_ON_ERROR", default=False)
+# default ticket priority per type (Plan 6.3 moves this into platform settings)
+TICKET_PRIORITIES = {
+    "booking_dispute": "high",
+    "refund_request": "high",
+    "flagged_review": "normal",
+    "provider_complaint": "normal",
+    "account_issue": "normal",
+    "failed_notification": "low",
+    "other": "low",
+}
+AUTO_TICKET_LATE_CANCELLATIONS = env.bool("AUTO_TICKET_LATE_CANCELLATIONS", default=False)
 DUPLICATE_DISTANCE_METERS = env.int("DUPLICATE_DISTANCE_METERS", default=30)
 DUPLICATE_NAME_SIMILARITY = env.float("DUPLICATE_NAME_SIMILARITY", default=0.5)
 PENDING_ESCALATION_MINUTES = env.int("PENDING_ESCALATION_MINUTES", default=120)

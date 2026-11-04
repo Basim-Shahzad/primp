@@ -21,6 +21,7 @@ CUSTOMER_SMS = {
     "new_review": "Primp: {customer_name} left a {rating}-star review for {business_name}.",
     "pending_escalation": "Primp: {customer_name} is waiting for you to accept {services} on {date} at {time}. Please respond.",
     "business_suspended_notice": "Primp: {business_name} is temporarily unavailable. Your booking on {date} at {time} may be affected; please contact support if you need help.",
+    "ticket_reply": 'Primp support replied to your request "{subject}". Open the app to read the reply.',
     "booking_reassigned": "Primp: your {services} at {business_name} on {date} at {time} is now with {staff_name}.",
 }
 
@@ -73,6 +74,18 @@ EMAIL = {
     "customer_suspended_notice": (
         "A customer was suspended",
         "The customer booked for {services} on {date} at {time} has been suspended by Primp support. Contact support if you have questions.",
+    ),
+    "ticket_reply": (
+        "Support replied to your request",
+        'Primp support replied to "{subject}": {message}',
+    ),
+    "review_moderated_author": (
+        "Your review was updated",
+        "Your review of {business_name} was {action} by Primp moderation. {reason}",
+    ),
+    "review_moderated_business": (
+        "A review was updated",
+        "A review of {business_name} was {action} by Primp moderation.",
     ),
     "pending_escalation": (
         "A booking is waiting for you",

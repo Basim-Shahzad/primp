@@ -41,6 +41,8 @@ PAYLOAD = {
     "message": "",
     "note_suffix": "",
     "rating": "5",
+    "subject": "Refund",
+    "action": "hidden",
 }
 
 
