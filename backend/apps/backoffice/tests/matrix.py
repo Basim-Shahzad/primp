@@ -139,6 +139,17 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
     ("post", "/admin/banners/reorder"): ("banners.manage", {"ids": []}, ""),
     ("patch", "/admin/banners/{banner_id}"): ("banners.manage", {"version": 1}, ""),
     ("delete", "/admin/banners/{banner_id}"): ("banners.manage", None, "version=1"),
+    ("post", "/admin/points/adjust/preview"): (
+        "points.adjust",
+        {"customer_id": ZERO, "amount": 5},
+        "",
+    ),
+    ("post", "/admin/points/adjust"): (
+        "points.adjust",
+        {"customer_id": ZERO, "amount": 5, "category": "goodwill", "note": "a long enough note"},
+        "",
+    ),
+    ("get", "/admin/points/adjustments"): ("points.adjust", None, ""),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}

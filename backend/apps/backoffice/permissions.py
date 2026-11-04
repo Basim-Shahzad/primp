@@ -164,7 +164,9 @@ class AdminAuth(HttpBearer):
 admin_auth = AdminAuth()
 
 
-def require_permission(permission: str) -> Callable[[HttpRequest], AdminActor]:
+def require_permission(
+    permission: str, *, reauth: bool | None = None
+) -> Callable[[HttpRequest], AdminActor]:
     """Call at the top of an endpoint: `actor = require_permission("users.view")(request)`."""
 
     def check(request: HttpRequest) -> AdminActor:
@@ -179,7 +181,7 @@ def require_permission(permission: str) -> Callable[[HttpRequest], AdminActor]:
             session_id=getattr(request, "admin_session_id", ""),
             ip=get_client_ip(request),
         )
-        actor.require(permission)
+        actor.require(permission, reauth=reauth)
         return actor
 
     return check

@@ -28,6 +28,7 @@ def register_routers() -> None:
         api_banners,
         api_geo,
         api_listings,
+        api_points,
         api_taxonomy,
         api_tickets,
         api_users,
@@ -65,6 +66,7 @@ def register_routers() -> None:
     api.add_router("/admin", api_geo.router)
     api.add_router("/admin", api_tickets.router)
     api.add_router("/admin", api_banners.router)
+    api.add_router("/admin", api_points.router)
     api.add_router("/banners", api_banners.public_router)
     api.add_router("/tickets", api_tickets.user_router)
     api.add_router("/files", businesses_provider.files_router)
