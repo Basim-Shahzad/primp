@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from apps.backoffice import config_service
 from apps.catalog import selectors as catalog
 from apps.core import audit, ratelimit
 from apps.core.errors import AppError, conflict, fields_from_pydantic, validation_error
@@ -212,6 +213,7 @@ def create_draft(
             verification_status=VerificationStatus.DRAFT,
             is_listed=False,
             onboarding_progress={"completed": ["basics"], "last_step": "basics"},
+            cancellation_notice_hours=int(config_service.get("default_cancellation_notice_hours")),
         )
     return business
 

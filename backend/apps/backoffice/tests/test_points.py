@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.accounts.factories import UserFactory, make_customer
 from apps.accounts.roles import Role
+from apps.backoffice import config_service
 from apps.backoffice.factories import make_admin
 from apps.backoffice.tests.helpers import A, admin_headers, call, headers_for, reauth
 from apps.core.models import AuditLog
@@ -170,6 +171,7 @@ def test_amount_boundaries_and_configurable_maximum(settings) -> None:  # type: 
     assert adjust(h, customer, 10_000, key="max").status_code == 201
     assert adjust(h, customer, -10_000, key="min").status_code == 201
     settings.POINTS_ADJUST_MAX = 50
+    config_service.invalidate("points_adjust_max")
     assert adjust(h, customer, 51, key="over").status_code == 422
     assert adjust(h, customer, 50, key="fits").status_code == 201
 
@@ -346,6 +348,7 @@ def test_preview_reports_balances_and_has_no_side_effects() -> None:
 
 def test_preview_flags_the_daily_limit(settings) -> None:  # type: ignore[no-untyped-def]
     settings.POINTS_ADJUST_DAILY_LIMIT = 100
+    config_service.invalidate("points_adjust_daily_limit")
     _, h = ops()
     customer = make_customer()
     adjust(h, customer, 60, key="p1")
@@ -364,6 +367,7 @@ def test_preview_flags_the_daily_limit(settings) -> None:  # type: ignore[no-unt
 
 def test_daily_limit_boundary_per_admin_and_replays(settings) -> None:  # type: ignore[no-untyped-def]
     settings.POINTS_ADJUST_DAILY_LIMIT = 100
+    config_service.invalidate("points_adjust_daily_limit")
     admin, h = ops()
     _, other = ops()
     customer = make_customer()
@@ -390,6 +394,8 @@ def test_daily_limit_resets_at_midnight_karachi(settings) -> None:  # type: igno
     from apps.bookings.tests.helpers import TUESDAY, local
 
     settings.POINTS_ADJUST_DAILY_LIMIT = 50
+
+    config_service.invalidate("points_adjust_daily_limit")
     settings.ADMIN_ACCESS_TOKEN_LIFETIME = timedelta(days=3)
     settings.ACCESS_TOKEN_LIFETIME = timedelta(days=3)
     customer = make_customer()
@@ -471,6 +477,7 @@ def test_parallel_requests_cannot_jointly_exceed_the_daily_limit(
     frozen, long_tokens, settings
 ) -> None:  # type: ignore[no-untyped-def]
     settings.POINTS_ADJUST_DAILY_LIMIT = 100
+    config_service.invalidate("points_adjust_daily_limit")
     _, h = ops()
     barrier = threading.Barrier(2)
     codes: list[int] = []

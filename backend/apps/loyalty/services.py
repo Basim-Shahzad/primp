@@ -9,13 +9,22 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
 
+from apps.backoffice import config_service
 from apps.core.errors import AppError, conflict
 
 from .models import LoyaltyAccount, PointRule, PointTransaction, RuleKind
 
 logger = logging.getLogger(__name__)
 
-EXPIRY = timedelta(days=365)
+DAYS_PER_MONTH = 30.4375
+
+
+def expiry_from(now: datetime) -> datetime:
+    """When points earned at `now` expire (platform setting `points_expiry_months`)."""
+    months = int(config_service.get("points_expiry_months"))
+    return now + timedelta(days=round(months * DAYS_PER_MONTH))
+
+
 BOOKING = "booking"
 REVIEW = "review"
 FIRST_BOOKING = "first_booking"
@@ -88,7 +97,7 @@ def credit(
                     reason=action,
                     reference_type=reference_type,
                     reference_id=ref,
-                    expires_at=now + EXPIRY,
+                    expires_at=expiry_from(now),
                     remaining=points,
                     created_at=now,
                 )
@@ -271,7 +280,7 @@ def adjust(
             reason=ADJUSTMENT,
             reference_type=ADJUSTMENT,
             reference_id=adjustment_reference(admin_id, key),
-            expires_at=now + EXPIRY if delta > 0 else None,
+            expires_at=expiry_from(now) if delta > 0 else None,
             remaining=delta if delta > 0 else 0,
             admin_id=admin_id,
             category=category,

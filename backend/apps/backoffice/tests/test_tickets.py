@@ -12,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.factories import UserFactory, make_customer
 from apps.accounts.roles import Role
 from apps.accounts.tests.helpers import bearer, login_client
-from apps.backoffice import tasks
+from apps.backoffice import config_service, tasks
 from apps.backoffice.factories import make_admin
 from apps.backoffice.models import Ticket, TicketMessage
 from apps.backoffice.services import tickets as svc
@@ -640,9 +640,12 @@ def test_late_cancellation_tickets_are_opt_in(settings) -> None:  # type: ignore
         return appt.pk
 
     settings.AUTO_TICKET_LATE_CANCELLATIONS = False
+
+    config_service.invalidate("auto_ticket_late_cancellations")
     cancel(True, "customer")
     assert not Ticket.objects.exists()
     settings.AUTO_TICKET_LATE_CANCELLATIONS = True
+    config_service.invalidate("auto_ticket_late_cancellations")
     cancel(False, "customer")
     cancel(True, "business")
     assert not Ticket.objects.exists()
@@ -737,6 +740,7 @@ def test_default_priorities_per_type_are_configurable(settings) -> None:  # type
         "low",
     ]
     settings.TICKET_PRIORITIES = {"other": "urgent", "account_issue": "nonsense"}
+    config_service.invalidate("auto_ticket_priorities")
     assert svc.default_priority("other") == "urgent"
     assert (
         svc.default_priority("account_issue") == "normal"

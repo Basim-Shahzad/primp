@@ -19,6 +19,7 @@ from apps.core.errors import conflict, not_found, validation_error
 from apps.notifications import services as notifications
 from apps.reviews import adminops as reviews
 
+from .. import config_service
 from ..models import (
     Ticket,
     TicketEvent,
@@ -62,7 +63,7 @@ SORTS = {
 
 
 def default_priority(ticket_type: str) -> str:
-    configured = getattr(settings, "TICKET_PRIORITIES", {})
+    configured = config_service.get("auto_ticket_priorities")
     value = str(configured.get(ticket_type, "normal"))
     return value if value in TicketPriority.values else "normal"
 

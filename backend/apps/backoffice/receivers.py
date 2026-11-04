@@ -3,7 +3,6 @@
 import logging
 from typing import Any
 
-from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -15,6 +14,7 @@ from apps.notifications import events as notification_events
 from apps.payments import events as payment_events
 from apps.reviews import events as review_events
 
+from . import config_service
 from .models import ReviewKind, ReviewQueueItem, TicketPriority, TicketType
 from .services import tickets
 
@@ -48,7 +48,11 @@ def on_booking_cancelled(
     sender: Any, appointment_id: int, cancelled_by: str = "", is_late: bool = False, **kw: Any
 ) -> None:
     """Open a dispute ticket for late customer cancellations when configured."""
-    if not (settings.AUTO_TICKET_LATE_CANCELLATIONS and cancelled_by == "customer" and is_late):
+    if not (
+        cancelled_by == "customer"
+        and is_late
+        and config_service.get("auto_ticket_late_cancellations")
+    ):
         return
     refs = bookings.appointment_refs(appointment_id)
     if refs is None:

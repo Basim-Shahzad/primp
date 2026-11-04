@@ -14,15 +14,16 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 
+from apps.backoffice import config_service
 from apps.core import ratelimit
 from apps.core.errors import AppError
 from apps.notifications.services import queue_sms, render_sms_body
 
-OTP_TTL = 300
-RESEND_COOLDOWN = 60
-MAX_VERIFY_ATTEMPTS = 5
-MAX_REQUESTS_PER_HOUR = 5
-MAX_REQUESTS_PER_IP_HOUR = 20
+
+def limits() -> dict[str, int]:
+    """Current OTP limits (platform setting `otp_limits`; changes apply without a restart)."""
+    return {k: int(v) for k, v in config_service.get("otp_limits").items()}
+
 
 LOGIN = "login"
 PHONE_CHANGE = "phone_change"
@@ -43,11 +44,14 @@ def _throttle(retry_after: int) -> dict[str, Any]:
 
 def request_otp(phone: str, purpose: str, ip: str | None) -> None:
     now = time.time()
+    cfg = limits()
     if ip:
-        ratelimit.enforce(f"otp-ip:{ip}", limit=MAX_REQUESTS_PER_IP_HOUR, window_seconds=3600)
+        ratelimit.enforce(
+            f"otp-ip:{ip}", limit=cfg["max_requests_per_ip_hour"], window_seconds=3600
+        )
     with cache.lock(f"lock:otp:{phone}", timeout=5, blocking_timeout=5):  # type: ignore[attr-defined]
         meta: dict[str, Any] = cache.get(f"otp:meta:{phone}") or {"last": 0.0, "sent": []}
-        wait = RESEND_COOLDOWN - (now - meta["last"])
+        wait = cfg["resend_cooldown_seconds"] - (now - meta["last"])
         if wait > 0:
             raise AppError(
                 "otp_cooldown",
@@ -56,7 +60,7 @@ def request_otp(phone: str, purpose: str, ip: str | None) -> None:
                 _throttle(int(wait) + 1),
             )
         sent = [t for t in meta["sent"] if now - t < 3600]
-        if len(sent) >= MAX_REQUESTS_PER_HOUR:
+        if len(sent) >= cfg["max_requests_per_hour"]:
             raise AppError(
                 "otp_rate_limited",
                 _("Too many codes requested. Try again later."),
@@ -66,8 +70,8 @@ def request_otp(phone: str, purpose: str, ip: str | None) -> None:
         code = f"{secrets.randbelow(1_000_000):06d}"
         cache.set(
             _code_key(purpose, phone),
-            {"h": _hash(purpose, phone, code), "exp": now + OTP_TTL, "att": 0},
-            timeout=OTP_TTL + 60,
+            {"h": _hash(purpose, phone, code), "exp": now + cfg["ttl_seconds"], "att": 0},
+            timeout=cfg["ttl_seconds"] + 60,
         )
         cache.set(f"otp:meta:{phone}", {"last": now, "sent": [*sent, now]}, timeout=3700)
     queue_sms(phone, render_sms_body("otp", {"code": code}))
@@ -79,19 +83,20 @@ def _invalid() -> AppError:
 
 def verify_otp(phone: str, purpose: str, code: str) -> None:
     key = _code_key(purpose, phone)
+    max_attempts = limits()["max_verify_attempts"]
     with cache.lock(f"lock:otpv:{phone}", timeout=5, blocking_timeout=5):  # type: ignore[attr-defined]
         record: dict[str, Any] | None = cache.get(key)
         if record is None or time.time() > record["exp"]:
             cache.delete(key)
             raise _invalid()
         record["att"] += 1
-        if record["att"] > MAX_VERIFY_ATTEMPTS:
+        if record["att"] > max_attempts:
             cache.delete(key)
             raise AppError(
                 "otp_attempts_exceeded", _("Too many incorrect attempts. Request a new code."), 429
             )
         if not hmac.compare_digest(record["h"], _hash(purpose, phone, code)):
-            if record["att"] >= MAX_VERIFY_ATTEMPTS:
+            if record["att"] >= max_attempts:
                 cache.delete(key)
             else:
                 cache.set(key, record, timeout=max(int(record["exp"] - time.time()) + 60, 1))

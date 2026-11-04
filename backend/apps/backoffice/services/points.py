@@ -15,6 +15,7 @@ from apps.core import audit
 from apps.core.errors import AppError, validation_error
 from apps.loyalty import adminops as loyalty
 
+from .. import config_service
 from ..permissions import AdminActor
 
 PERMISSION = "points.adjust"
@@ -30,11 +31,11 @@ def _day_bounds(now: datetime) -> tuple[datetime, datetime]:
 
 
 def max_amount() -> int:
-    return int(settings.POINTS_ADJUST_MAX)
+    return int(config_service.get("points_adjust_max"))
 
 
 def daily_limit() -> int:
-    return int(settings.POINTS_ADJUST_DAILY_LIMIT)
+    return int(config_service.get("points_adjust_daily_limit"))
 
 
 def _check_amount(amount: int) -> None:

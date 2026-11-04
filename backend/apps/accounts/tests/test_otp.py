@@ -171,7 +171,9 @@ def test_hourly_cap_5_per_phone(run_commit) -> None:  # type: ignore[no-untyped-
 
 
 def test_per_ip_limit() -> None:
-    with mock.patch.object(otp, "MAX_REQUESTS_PER_IP_HOUR", 2):
+    with mock.patch.object(
+        otp, "limits", return_value={**otp.limits(), "max_requests_per_ip_hour": 2}
+    ):
         codes = [
             post_json(Client(), REQ, {"phone": f"030012345{i:02d}"}).status_code for i in range(3)
         ]

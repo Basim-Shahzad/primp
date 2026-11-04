@@ -130,7 +130,13 @@ def verify_email(request: HttpRequest, payload: TokenIn) -> MessageOut:
 @auth_router.post("/otp/request", response={202: OTPRequestOut}, auth=None)
 def otp_request(request: HttpRequest, payload: OTPRequestIn) -> Status[OTPRequestOut]:
     services.request_phone_otp(payload.phone, request)
-    return Status(202, OTPRequestOut(expires_in=otp.OTP_TTL, resend_in=otp.RESEND_COOLDOWN))
+    return Status(
+        202,
+        OTPRequestOut(
+            expires_in=otp.limits()["ttl_seconds"],
+            resend_in=otp.limits()["resend_cooldown_seconds"],
+        ),
+    )
 
 
 @auth_router.post("/otp/verify", response=TokenOut, auth=None)
@@ -197,7 +203,13 @@ def upload_photo(request: HttpRequest, file: File[UploadedFile]) -> UserOut:
 @users_router.post("/me/phone/change", response={202: OTPRequestOut}, auth=jwt_auth)
 def phone_change(request: HttpRequest, payload: PhoneChangeIn) -> Status[OTPRequestOut]:
     profile.request_phone_change(request.auth, payload.phone, get_client_ip(request))  # type: ignore[attr-defined]
-    return Status(202, OTPRequestOut(expires_in=otp.OTP_TTL, resend_in=otp.RESEND_COOLDOWN))
+    return Status(
+        202,
+        OTPRequestOut(
+            expires_in=otp.limits()["ttl_seconds"],
+            resend_in=otp.limits()["resend_cooldown_seconds"],
+        ),
+    )
 
 
 @users_router.post("/me/phone/confirm", response=UserOut, auth=jwt_auth)

@@ -15,12 +15,13 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_redis import get_redis_connection
 from redis.exceptions import RedisError
+
+from apps.backoffice import config_service
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ class Hold:
 
 
 def hold_ttl_seconds() -> int:
-    return int(settings.BOOKING_HOLD_SECONDS)
+    return int(config_service.get("slot_hold_seconds"))
 
 
 def hold_key(business_id: int, staff_id: int | None, start: datetime, slot: int = 0) -> str:

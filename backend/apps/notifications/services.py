@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.accounts import selectors as accounts
+from apps.backoffice import config_service
 
 from . import events, preferences
 from .adapters import SMSDeliveryError, get_sms_adapter
@@ -212,7 +213,7 @@ def render_check(key: str, channels: Iterable[str], payload: dict[str, Any]) -> 
 
 
 def reminder_offsets() -> dict[str, int]:
-    return dict(settings.REMINDER_OFFSETS)
+    return {k: int(v) for k, v in config_service.get("reminder_offsets").items()}
 
 
 def reminder_grace() -> int:

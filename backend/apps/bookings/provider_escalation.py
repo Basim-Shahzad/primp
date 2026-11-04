@@ -4,10 +4,10 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.backoffice import config_service
 from apps.core.errors import AppError
 from apps.notifications import services as notifications
 
@@ -31,14 +31,14 @@ class EscalationResult:
 def escalate_pending(now: datetime | None = None) -> EscalationResult:
     """Idempotent: each pending booking is escalated at most once and cancelled at most once.
 
-    - After PENDING_ESCALATION_MINUTES without an answer the owner gets a `pending_escalation`
-      alert (claim row guarantees a single alert).
-    - At PENDING_AUTO_CANCEL_MINUTES after creation, or at its start time if that comes first,
+    - After `pending_escalation_minutes` (a platform setting) without an answer the owner gets
+      a `pending_escalation` alert (a claim row guarantees a single alert).
+    - At `pending_auto_cancel_minutes` after creation, or at its start time if that comes first,
       the booking is cancelled by the system and the customer is told.
     """
     now = now or timezone.now()
-    escalate_after = timedelta(minutes=int(settings.PENDING_ESCALATION_MINUTES))
-    cancel_after = timedelta(minutes=int(settings.PENDING_AUTO_CANCEL_MINUTES))
+    escalate_after = timedelta(minutes=int(config_service.get("pending_escalation_minutes")))
+    cancel_after = timedelta(minutes=int(config_service.get("pending_auto_cancel_minutes")))
     pending = Appointment.objects.filter(status=AppointmentStatus.PENDING)
 
     cancelled = 0
