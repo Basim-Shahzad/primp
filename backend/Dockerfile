@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgdal36 libge
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY --chown=app:app . .
+RUN mkdir -p /app/private_media /app/media && chown app:app /app/private_media /app/media
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 DJANGO_SETTINGS_MODULE=config.settings.prod
 USER app
 EXPOSE 8000

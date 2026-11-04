@@ -30,8 +30,9 @@ services:
     ports: ["9000:9000", "9001:9001"]
   web:
     <<: *app
-    command: sh -c "python manage.py migrate && python manage.py seed_demo && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && python manage.py seed_starter_menu && python manage.py seed_demo && python manage.py runserver 0.0.0.0:8000"
     ports: ["8000:8000"]
+    volumes: [private_media:/app/private_media]
   worker:
     <<: *app
     command: celery -A config worker -l info -Q critical,default,bulk
@@ -41,3 +42,4 @@ services:
 
 volumes:
   pgdata:
+  private_media:
