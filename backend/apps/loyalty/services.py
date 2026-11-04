@@ -1,5 +1,6 @@
 """Earning-only loyalty: rules, an idempotent ledger and an account summary."""
 
+import hashlib
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -7,6 +8,8 @@ from datetime import datetime, timedelta
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
+
+from apps.core.errors import AppError, conflict
 
 from .models import LoyaltyAccount, PointRule, PointTransaction, RuleKind
 
@@ -205,3 +208,77 @@ def reconcile(*, repair: bool = False) -> list[Mismatch]:
                 account.lifetime_earned = m.ledger_lifetime
                 account.save(update_fields=["balance", "lifetime_earned", "updated_at"])
     return mismatches
+
+
+ADJUSTMENT = "adjustment"
+ADJUSTMENT_CATEGORIES = ("goodwill", "correction", "fraud_reversal", "other")
+
+
+def adjustment_reference(admin_id: int, key: str) -> str:
+    """Ledger reference for (admin, idempotency key); hashed so any key fits the column."""
+    return f"{admin_id}:{hashlib.sha256(key.encode()).hexdigest()[:40]}"
+
+
+def find_adjustment(admin_id: int, key: str) -> PointTransaction | None:
+    return PointTransaction.objects.filter(
+        reason=ADJUSTMENT,
+        reference_type=ADJUSTMENT,
+        reference_id=adjustment_reference(admin_id, key),
+    ).first()
+
+
+def adjust(
+    *,
+    customer_id: int,
+    delta: int,
+    category: str,
+    note: str,
+    admin_id: int,
+    key: str,
+    now: datetime | None = None,
+) -> tuple[PointTransaction, bool]:
+    """Add or remove points by hand. Returns (ledger row, created); a repeat of the same
+    (admin, key) returns the original row. The balance may only go below zero for
+    `fraud_reversal`. The ledger row and the summary change in one transaction under the
+    account's row lock, so parallel adjustments stay consistent."""
+    now = now or timezone.now()
+    with transaction.atomic():
+        account = _account(customer_id)
+        existing = find_adjustment(admin_id, key)
+        if existing is not None:
+            same = (existing.customer_id, existing.delta, existing.category, existing.note) == (
+                customer_id,
+                delta,
+                category,
+                note,
+            )
+            if not same:
+                raise conflict(
+                    "idempotency_conflict", "This Idempotency-Key was used for a different request."
+                )
+            return existing, False
+        new_balance = account.balance + delta
+        if new_balance < 0 and category != "fraud_reversal":
+            raise AppError(
+                "insufficient_points",
+                "The customer does not have enough points for this adjustment.",
+                422,
+                {"amount": [f"Balance would become {new_balance}."]},
+            )
+        entry = PointTransaction.objects.create(
+            customer_id=customer_id,
+            delta=delta,
+            reason=ADJUSTMENT,
+            reference_type=ADJUSTMENT,
+            reference_id=adjustment_reference(admin_id, key),
+            expires_at=now + EXPIRY if delta > 0 else None,
+            remaining=delta if delta > 0 else 0,
+            admin_id=admin_id,
+            category=category,
+            note=note,
+            created_at=now,
+        )
+        account.balance = new_balance
+        account.lifetime_earned += delta
+        account.save(update_fields=["balance", "lifetime_earned", "updated_at"])
+    return entry, True
