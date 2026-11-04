@@ -245,3 +245,12 @@ def group_names(user: User) -> list[str]:
 
 def admin_summary(user: User) -> dict[str, Any]:
     return {"role": user.role, "groups": group_names(user)}
+
+
+def public_ids(user_ids: set[int]) -> dict[int, uuid.UUID]:
+    """Internal id -> public id for the given users (for rendering actors)."""
+    return dict(User.objects.filter(pk__in=user_ids).values_list("pk", "public_id"))
+
+
+def internal_id(public_id: uuid.UUID) -> int | None:
+    return User.objects.filter(public_id=public_id).values_list("pk", flat=True).first()

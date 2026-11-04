@@ -164,6 +164,8 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         {"version": 1, "body": "hi"},
         "",
     ),
+    ("get", "/admin/audit-log"): ("audit.view", None, ""),
+    ("get", "/admin/audit-log/export.csv"): ("audit.view", None, ""),
     ("get", "/admin/point-rules"): ("config.manage", None, ""),
     ("patch", "/admin/point-rules/{rule_id}"): ("config.manage", {"version": 1}, ""),
 }
