@@ -47,3 +47,11 @@
 - Loyalty redemption and point expiry processing (`expires_at` and `remaining` are stored already).
 - Urdu translations (strings are wrapped with `gettext_lazy`; notification templates support a language).
 - Hold limits per user beyond the per-minute rate limit.
+
+## Admin side (Plan 6.3)
+
+- **TOTP two-factor for admins** (`ADMIN_2FA_REQUIRED`) is not implemented. Design: a `TotpDevice` row per admin
+  (encrypted secret, confirmed_at, recovery-code hashes); `POST /admin/auth/login` returns a short-lived
+  `challenge` token when a device exists, and `POST /admin/auth/2fa` exchanges challenge + 6-digit code (30 s
+  window, +-1 step, replay-protected in the cache) for the session; admins without a device are forced through
+  enrolment when the flag is on. Re-authentication would then accept password + code.
