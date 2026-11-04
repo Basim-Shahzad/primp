@@ -1,10 +1,12 @@
 from django.contrib import admin
 
+from apps.core.admin_base import ReadOnlyAdmin
+
 from .models import LoyaltyAccount, PointRule, PointTransaction
 
 
 @admin.register(PointRule)
-class PointRuleAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class PointRuleAdmin(ReadOnlyAdmin):
     list_display = (
         "action",
         "kind",
@@ -18,17 +20,12 @@ class PointRuleAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
 
 
 @admin.register(LoyaltyAccount)
-class LoyaltyAccountAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class LoyaltyAccountAdmin(ReadOnlyAdmin):
     list_display = ("customer", "balance", "lifetime_earned")
-    readonly_fields = ("customer", "balance", "lifetime_earned")
+    raw_id_fields = ("customer",)
 
 
 @admin.register(PointTransaction)
-class PointTransactionAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+class PointTransactionAdmin(ReadOnlyAdmin):
     list_display = ("customer", "delta", "reason", "reference_type", "reference_id", "created_at")
-
-    def has_change_permission(self, request, obj=None):  # type: ignore[no-untyped-def]
-        return False
-
-    def has_delete_permission(self, request, obj=None):  # type: ignore[no-untyped-def]
-        return False
+    raw_id_fields = ("customer", "admin")

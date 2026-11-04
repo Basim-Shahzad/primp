@@ -26,3 +26,29 @@ class RequestIDMiddleware:
             request_id_var.reset(token)
         response[HEADER] = rid
         return response
+
+
+class AdminIPAllowListMiddleware:
+    """Only allow-listed addresses reach the Django admin when ADMIN_ALLOWED_IPS is set.
+
+    The admin URL prefix is `settings.ADMIN_URL_PATH`. An empty list allows everyone (local
+    development); a non-empty list denies every other address with a bare 404 so the admin's
+    existence is not advertised.
+    """
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        from django.conf import settings
+
+        allowed = [str(ip) for ip in getattr(settings, "ADMIN_ALLOWED_IPS", [])]
+        prefix = "/" + str(getattr(settings, "ADMIN_URL_PATH", "admin/")).lstrip("/")
+        if allowed and request.path.startswith(prefix):
+            from .http import get_client_ip
+
+            if get_client_ip(request) not in allowed:
+                from django.http import HttpResponseNotFound
+
+                return HttpResponseNotFound()
+        return self.get_response(request)
