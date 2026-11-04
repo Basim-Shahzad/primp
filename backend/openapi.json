@@ -3718,6 +3718,37 @@
         "title": "GoogleIn",
         "type": "object"
       },
+      "HistoryPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryRow"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "HistoryPage",
+        "type": "object"
+      },
       "HistoryParams": {
         "properties": {
           "cursor": {
@@ -3750,6 +3781,66 @@
           }
         },
         "title": "HistoryParams",
+        "type": "object"
+      },
+      "HistoryQuery": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "title": "HistoryQuery",
+        "type": "object"
+      },
+      "HistoryRow": {
+        "properties": {
+          "changed_at": {
+            "format": "date-time",
+            "title": "Changed At",
+            "type": "string"
+          },
+          "changed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "new_value": {
+            "title": "New Value"
+          },
+          "old_value": {
+            "title": "Old Value"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "old_value",
+          "new_value",
+          "changed_by",
+          "changed_at"
+        ],
+        "title": "HistoryRow",
         "type": "object"
       },
       "HoldIn": {
@@ -7550,6 +7641,114 @@
         "title": "ServicePatchIn",
         "type": "object"
       },
+      "SettingChangedOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "version"
+        ],
+        "title": "SettingChangedOut",
+        "type": "object"
+      },
+      "SettingOut": {
+        "properties": {
+          "default": {
+            "title": "Default"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "is_default": {
+            "title": "Is Default",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "updated_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated By"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "value_schema": {
+            "additionalProperties": true,
+            "title": "Value Schema",
+            "type": "object"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "description",
+          "value",
+          "default",
+          "is_default",
+          "version",
+          "value_schema",
+          "updated_by",
+          "updated_at"
+        ],
+        "title": "SettingOut",
+        "type": "object"
+      },
+      "SettingPatchIn": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          },
+          "version": {
+            "minimum": 0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "version"
+        ],
+        "title": "SettingPatchIn",
+        "type": "object"
+      },
       "ShiftOut": {
         "properties": {
           "closes_at": {
@@ -10383,6 +10582,145 @@
           }
         ],
         "summary": "Patch Area",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/config": {
+      "get": {
+        "operationId": "apps_backoffice_api_config_list_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SettingOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "List Settings",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/config/{key}": {
+      "patch": {
+        "operationId": "apps_backoffice_api_config_patch_setting",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingChangedOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Patch Setting",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/config/{key}/history": {
+      "get": {
+        "operationId": "apps_backoffice_api_config_setting_history",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryPage"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Setting History",
         "tags": [
           "admin"
         ]

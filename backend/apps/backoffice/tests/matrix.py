@@ -150,6 +150,9 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         "",
     ),
     ("get", "/admin/points/adjustments"): ("points.adjust", None, ""),
+    ("get", "/admin/config"): ("config.manage", None, ""),
+    ("patch", "/admin/config/{key}"): ("config.manage", {"value": 400, "version": 0}, ""),
+    ("get", "/admin/config/{key}/history"): ("config.manage", None, ""),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}
@@ -172,7 +175,7 @@ def fill(template: str) -> str:
         area_id=FAKE,
         banner_id=FAKE,
         review_id=ZERO,
-        key="commission_rate_bps",
+        key="slot_hold_seconds",
         template_id=FAKE,
         rule_id=FAKE,
         kind="desktop",

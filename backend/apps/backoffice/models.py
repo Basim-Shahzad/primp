@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import PublicIdMixin, TimeStampedModel
+from apps.core.models import ImmutableRecordError, PublicIdMixin, TimeStampedModel
 
 from .permissions import PERMISSION_CHOICES
 
@@ -258,3 +258,57 @@ class Banner(TimeStampedModel):
 
     def __str__(self) -> str:
         return self.title
+
+
+class PlatformSetting(models.Model):
+    """A runtime override of a code default (see config_registry)."""
+
+    key = models.CharField(max_length=80, unique=True)
+    value = models.JSONField()
+    schema_id = models.CharField(max_length=80)
+    version = models.PositiveIntegerField(default=1)
+    updated_by = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.key} v{self.version}"
+
+
+class HistoryQuerySet(models.QuerySet["PlatformSettingHistory"]):
+    def update(self, **kwargs: object) -> int:
+        raise ImmutableRecordError("Setting history cannot be updated.")
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise ImmutableRecordError("Setting history cannot be deleted.")
+
+
+class PlatformSettingHistory(models.Model):
+    """Append-only record of every change."""
+
+    key = models.CharField(max_length=80, db_index=True)
+    old_value = models.JSONField(null=True, blank=True)
+    new_value = models.JSONField()
+    version = models.PositiveIntegerField()
+    changed_by = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    objects = HistoryQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-changed_at", "-id"]
+        verbose_name_plural = "platform setting history"
+
+    def __str__(self) -> str:
+        return f"{self.key} -> v{self.version}"
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        if not self._state.adding:
+            raise ImmutableRecordError("Setting history cannot be modified.")
+        super().save(*args, **kwargs)  # type: ignore[arg-type]
+
+    def delete(self, *args: object, **kwargs: object) -> tuple[int, dict[str, int]]:
+        raise ImmutableRecordError("Setting history cannot be deleted.")

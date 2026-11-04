@@ -26,6 +26,7 @@ def register_routers() -> None:
     from apps.backoffice import (
         api_admin,
         api_banners,
+        api_config,
         api_geo,
         api_listings,
         api_points,
@@ -67,6 +68,7 @@ def register_routers() -> None:
     api.add_router("/admin", api_tickets.router)
     api.add_router("/admin", api_banners.router)
     api.add_router("/admin", api_points.router)
+    api.add_router("/admin", api_config.router)
     api.add_router("/banners", api_banners.public_router)
     api.add_router("/tickets", api_tickets.user_router)
     api.add_router("/files", businesses_provider.files_router)
