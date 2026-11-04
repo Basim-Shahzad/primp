@@ -144,6 +144,8 @@ Set in the environment or `.env`. Production (`config.settings.prod`) refuses to
 | `PRIVATE_URL_TTL_SECONDS` | `300` | validity of signed document download links |
 | `DOCUMENT_MAX_BYTES` | `10485760` | max verification document size (10 MB) |
 | `ANALYTICS_RAISE_ON_ERROR` | `False` | raise on daily-stats refresh errors (tests) |
+| `DUPLICATE_DISTANCE_METERS` | `30` | review queue: businesses this close with a similar name are flagged as possible duplicates |
+| `DUPLICATE_NAME_SIMILARITY` | `0.5` | review queue: trigram similarity threshold (0-1) for that check |
 | `PENDING_ESCALATION_MINUTES` | `120` | pending manual-accept booking: alert the owner after this long |
 | `PENDING_AUTO_CANCEL_MINUTES` | `720` | pending booking auto-cancelled after this long (or at its start time, whichever is first) |
 | `PROVIDER_COMPLETE_TOLERANCE_MINUTES` | `15` | an owner may mark a booking complete this long before its start |

@@ -50,6 +50,8 @@ def _transition(
     to_status: str,
     action: str,
     apply: Any,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
 ) -> Business:
     if getattr(admin, "role", None) not in ADMIN_ROLES:
         raise forbidden()
@@ -73,7 +75,8 @@ def _transition(
             target_type="business",
             target_id=locked.public_id,
             before=before,
-            after=_snapshot(locked),
+            after={**_snapshot(locked), **(context or {})},
+            ip=ip,
         )
         events.emit(events.business_verification_changed, locked.pk, status=to_status)
         notify_status_changed(locked, to_status, locked.status_message)
@@ -82,7 +85,13 @@ def _transition(
     return business
 
 
-def mark_verified(business: Business, admin: Any) -> Business:
+def mark_verified(
+    business: Business,
+    admin: Any,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
     """Approve a pending business (or reinstate a revoked one): shows the badge and lists it."""
 
     def apply(b: Business) -> None:
@@ -93,11 +102,18 @@ def mark_verified(business: Business, admin: Any) -> Business:
         b.revoked_reason = ""
 
     return _transition(
-        business, admin, (V.PENDING, V.REVOKED), V.VERIFIED, "business.verified", apply
+        business, admin, (V.PENDING, V.REVOKED), V.VERIFIED, "business.verified", apply, ip, context
     )
 
 
-def revoke_verification(business: Business, admin: Any, reason: str) -> Business:
+def revoke_verification(
+    business: Business,
+    admin: Any,
+    reason: str,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
     """Remove the badge of a verified business at once (the listing itself is not changed)."""
     reason = _message(reason, "reason")
 
@@ -106,11 +122,25 @@ def revoke_verification(business: Business, admin: Any, reason: str) -> Business
         b.status_message = reason
 
     return _transition(
-        business, admin, (V.VERIFIED,), V.REVOKED, "business.verification_revoked", apply
+        business,
+        admin,
+        (V.VERIFIED,),
+        V.REVOKED,
+        "business.verification_revoked",
+        apply,
+        ip,
+        context,
     )
 
 
-def request_more_info(business: Business, admin: Any, message: str) -> Business:
+def request_more_info(
+    business: Business,
+    admin: Any,
+    message: str,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
     """Ask the owner for more information; they can edit and resubmit."""
     message = _message(message, "message")
 
@@ -119,11 +149,25 @@ def request_more_info(business: Business, admin: Any, message: str) -> Business:
         b.is_listed = False
 
     return _transition(
-        business, admin, (V.PENDING,), V.NEEDS_INFO, "business.more_info_requested", apply
+        business,
+        admin,
+        (V.PENDING,),
+        V.NEEDS_INFO,
+        "business.more_info_requested",
+        apply,
+        ip,
+        context,
     )
 
 
-def reject(business: Business, admin: Any, reason: str) -> Business:
+def reject(
+    business: Business,
+    admin: Any,
+    reason: str,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
     """Reject a submission (the owner may resubmit once, see ADR-012)."""
     reason = _message(reason, "reason")
 
@@ -132,5 +176,102 @@ def reject(business: Business, admin: Any, reason: str) -> Business:
         b.is_listed = False
 
     return _transition(
-        business, admin, (V.PENDING, V.NEEDS_INFO), V.REJECTED, "business.rejected", apply
+        business,
+        admin,
+        (V.PENDING, V.NEEDS_INFO),
+        V.REJECTED,
+        "business.rejected",
+        apply,
+        ip,
+        context,
     )
+
+
+# ---------------------------------------------------------------- name / category changes
+
+
+def approve_pending_changes(
+    business: Business,
+    admin: Any,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
+    """Apply the owner's pending name/category change to the live listing."""
+    from apps.catalog import selectors as catalog
+
+    from .onboarding import unique_slug
+
+    if getattr(admin, "role", None) not in ADMIN_ROLES:
+        raise forbidden()
+    with transaction.atomic():
+        locked = Business.objects.select_for_update().filter(pk=business.pk).first()
+        if locked is None:
+            raise not_found()
+        pending = dict(locked.pending_review_changes or {})
+        if not pending:
+            raise conflict("no_pending_changes", _("There is no change waiting for review."))
+        before = {
+            "name": locked.name,
+            "category_id": locked.category_id,
+            "pending": pending,
+        }
+        if "name" in pending:
+            locked.name = pending["name"]
+            locked.slug = unique_slug(locked.city_id, locked.name, locked.pk)
+        if "category_id" in pending:
+            category = catalog.get_active_category(int(pending["category_id"]))
+            if category is None:
+                raise conflict("category_unavailable", _("The requested category is inactive."))
+            locked.category = category
+        locked.pending_review_changes = None
+        locked.save()
+        audit.record(
+            "business.change_approved",
+            actor_id=admin.pk,
+            target_type="business",
+            target_id=locked.public_id,
+            before=before,
+            after={"name": locked.name, "category_id": locked.category_id, **(context or {})},
+            ip=ip,
+        )
+        notify_status_changed(locked, "change approved", "Your requested changes are now live.")
+    touch(locked.pk)
+    business.refresh_from_db()
+    return business
+
+
+def reject_pending_changes(
+    business: Business,
+    admin: Any,
+    reason: str,
+    *,
+    ip: str | None = None,
+    context: dict[str, Any] | None = None,
+) -> Business:
+    """Discard the owner's pending name/category change; the live listing is untouched."""
+    reason = _message(reason, "reason")
+    if getattr(admin, "role", None) not in ADMIN_ROLES:
+        raise forbidden()
+    with transaction.atomic():
+        locked = Business.objects.select_for_update().filter(pk=business.pk).first()
+        if locked is None:
+            raise not_found()
+        pending = dict(locked.pending_review_changes or {})
+        if not pending:
+            raise conflict("no_pending_changes", _("There is no change waiting for review."))
+        locked.pending_review_changes = None
+        locked.save(update_fields=["pending_review_changes", "updated_at"])
+        audit.record(
+            "business.change_rejected",
+            actor_id=admin.pk,
+            target_type="business",
+            target_id=locked.public_id,
+            before={"pending": pending},
+            after={"pending": None, "reason": reason, **(context or {})},
+            ip=ip,
+        )
+        notify_status_changed(locked, "change declined", reason)
+    touch(locked.pk)
+    business.refresh_from_db()
+    return business

@@ -1,5 +1,16 @@
 """Business operations for the backoffice (it may not import this app's models)."""
 
+import uuid
+from typing import Any
+
+from django.conf import settings
+from django.contrib.gis.measure import D
+from django.contrib.postgres.search import TrigramSimilarity
+
+from apps.core.errors import not_found
+
+from . import files, page
+from . import verification as verification_service
 from .invalidation import touch
 from .models import Business, VerificationStatus
 
@@ -38,3 +49,131 @@ def owns_businesses(owner_id: int) -> bool:
 
 def owner_business_ids(owner_id: int) -> list[int]:
     return list(Business.objects.filter(owner_id=owner_id).values_list("pk", flat=True))
+
+
+# ---------------------------------------------------------------- review support
+
+
+def get_business(ref: str | uuid.UUID) -> Business:
+    try:
+        public_id = ref if isinstance(ref, uuid.UUID) else uuid.UUID(str(ref))
+    except ValueError:
+        raise not_found() from None
+    business = (
+        Business.objects.select_related("city", "area", "category", "owner")
+        .filter(public_id=public_id)
+        .first()
+    )
+    if business is None:
+        raise not_found()
+    return business
+
+
+def get_business_by_id(business_id: int) -> Business:
+    business = (
+        Business.objects.select_related("city", "area", "category", "owner")
+        .filter(pk=business_id)
+        .first()
+    )
+    if business is None:
+        raise not_found()
+    return business
+
+
+def preview(business: Business) -> dict[str, Any]:
+    """Exactly what the public page would show (even when unlisted)."""
+    return page.render_page(business)
+
+
+def private_fields(business: Business) -> dict[str, Any]:
+    owner = business.owner
+    return {
+        "status": business.verification_status,
+        "status_message": business.status_message,
+        "is_listed": business.is_listed,
+        "owner_email": owner.email,
+        "owner_phone": owner.phone,
+        "address": business.address,
+        "phone": business.phone,
+        "whatsapp": business.whatsapp,
+        "location": {"lat": business.location.y, "lng": business.location.x},
+        "pending_review_changes": business.pending_review_changes,
+        "onboarding_progress": business.onboarding_progress,
+        "submissions": [
+            {
+                "number": s.number,
+                "terms_version": s.terms_version,
+                "accepted_at": s.accepted_at,
+                "ip_address": s.ip_address,
+                "after_rejection": s.is_resubmission_after_rejection,
+            }
+            for s in business.submissions.all()
+        ],
+    }
+
+
+def documents_with_urls(business: Business) -> list[dict[str, Any]]:
+    """Verification documents as signed, short-lived links (never raw storage paths)."""
+    return [
+        {
+            "id": d.pk,
+            "kind": d.kind,
+            "status": d.status,
+            "reviewer_note": d.reviewer_note,
+            "content_type": d.content_type,
+            "size": d.size,
+            "url": files.signed_url(d.pk),
+            "expires_in_seconds": min(int(settings.PRIVATE_URL_TTL_SECONDS), 300),
+        }
+        for d in business.documents.all()
+    ]
+
+
+def find_duplicates(business: Business) -> list[dict[str, Any]]:
+    """Other businesses with the same phone, or very close by with a similar name."""
+    found: dict[int, dict[str, Any]] = {}
+    others = Business.objects.exclude(pk=business.pk)
+    phones = [p for p in {business.phone, business.whatsapp} if p]
+    if phones:
+        for other in others.filter(phone__in=phones):
+            found.setdefault(other.pk, _dup(other))["reasons"].append("same_phone")
+    nearby = (
+        others.filter(
+            location__dwithin=(business.location, D(m=settings.DUPLICATE_DISTANCE_METERS))
+        )
+        .annotate(sim=TrigramSimilarity("name", business.name))
+        .filter(sim__gte=settings.DUPLICATE_NAME_SIMILARITY)
+    )
+    for other in nearby:
+        found.setdefault(other.pk, _dup(other))["reasons"].append("nearby_similar_name")
+    return list(found.values())
+
+
+def _dup(other: Business) -> dict[str, Any]:
+    return {
+        "business_id": other.public_id,
+        "name": other.name,
+        "status": other.verification_status,
+        "reasons": [],
+    }
+
+
+def brief(business_id: int) -> dict[str, Any]:
+    b = get_business_by_id(business_id)
+    return {
+        "id": b.public_id,
+        "name": b.name,
+        "city": b.city.name,
+        "category": b.category.name,
+        "status": b.verification_status,
+        "owner_id": b.owner.public_id,
+    }
+
+
+# thin pass-throughs so backoffice calls one module of this app
+mark_verified = verification_service.mark_verified
+reject = verification_service.reject
+request_more_info = verification_service.request_more_info
+revoke_verification = verification_service.revoke_verification
+approve_pending_changes = verification_service.approve_pending_changes
+reject_pending_changes = verification_service.reject_pending_changes
