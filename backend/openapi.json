@@ -170,6 +170,110 @@
         "title": "AppointmentDetailOut",
         "type": "object"
       },
+      "AppointmentListQuery": {
+        "properties": {
+          "cursor": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "order": {
+            "default": "asc",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "title": "Order",
+            "type": "string"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Q"
+          },
+          "service_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Id"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "title": "AppointmentListQuery",
+        "type": "object"
+      },
       "AppointmentOut": {
         "properties": {
           "business": {
@@ -879,21 +983,9 @@
       },
       "CancelIn": {
         "properties": {
-          "note": {
-            "default": "",
-            "maxLength": 500,
-            "title": "Note",
-            "type": "string"
-          },
           "reason": {
-            "enum": [
-              "change_of_plans",
-              "found_alternative",
-              "schedule_conflict",
-              "price",
-              "emergency",
-              "other"
-            ],
+            "maxLength": 500,
+            "minLength": 1,
             "title": "Reason",
             "type": "string"
           }
@@ -920,6 +1012,28 @@
           "name"
         ],
         "title": "CategoryRefOut",
+        "type": "object"
+      },
+      "ChangesOut": {
+        "properties": {
+          "appointments": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderAppointmentOut"
+            },
+            "title": "Appointments",
+            "type": "array"
+          },
+          "server_time": {
+            "format": "date-time",
+            "title": "Server Time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "server_time",
+          "appointments"
+        ],
+        "title": "ChangesOut",
         "type": "object"
       },
       "ChecklistItemOut": {
@@ -1120,6 +1234,54 @@
           }
         },
         "title": "CursorParams",
+        "type": "object"
+      },
+      "CustomerSummaryOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "no_show_count": {
+            "title": "No Show Count",
+            "type": "integer"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "previous_completed_visits": {
+            "title": "Previous Completed Visits",
+            "type": "integer"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "phone",
+          "previous_completed_visits",
+          "no_show_count"
+        ],
+        "title": "CustomerSummaryOut",
         "type": "object"
       },
       "DayHoursOut": {
@@ -1732,6 +1894,65 @@
         "title": "MyReviewOut",
         "type": "object"
       },
+      "NeedsActionOut": {
+        "properties": {
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderAppointmentOut"
+            },
+            "title": "Pending",
+            "type": "array"
+          },
+          "reschedule_requests": {
+            "items": {
+              "$ref": "#/components/schemas/NeedsActionRescheduleOut"
+            },
+            "title": "Reschedule Requests",
+            "type": "array"
+          },
+          "unread_count": {
+            "title": "Unread Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unread_count",
+          "pending",
+          "reschedule_requests"
+        ],
+        "title": "NeedsActionOut",
+        "type": "object"
+      },
+      "NeedsActionRescheduleOut": {
+        "properties": {
+          "appointment": {
+            "$ref": "#/components/schemas/ProviderAppointmentOut"
+          },
+          "request": {
+            "$ref": "#/components/schemas/RescheduleRequestOwnerOut"
+          }
+        },
+        "required": [
+          "request",
+          "appointment"
+        ],
+        "title": "NeedsActionRescheduleOut",
+        "type": "object"
+      },
+      "NoteIn": {
+        "properties": {
+          "note": {
+            "maxLength": 1000,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "title": "NoteIn",
+        "type": "object"
+      },
       "OTPRequestIn": {
         "properties": {
           "phone": {
@@ -1982,6 +2203,31 @@
           "created_at"
         ],
         "title": "OwnerBusinessOut",
+        "type": "object"
+      },
+      "OwnerRescheduleIn": {
+        "properties": {
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start"
+        ],
+        "title": "OwnerRescheduleIn",
         "type": "object"
       },
       "PasswordResetConfirmIn": {
@@ -2328,8 +2574,135 @@
         "title": "ProfilePatchIn",
         "type": "object"
       },
+      "ProviderAppointmentDetailOut": {
+        "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Actions",
+            "type": "array"
+          },
+          "business_note": {
+            "title": "Business Note",
+            "type": "string"
+          },
+          "cancellation_reason": {
+            "title": "Cancellation Reason",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/ProviderCustomerOut"
+          },
+          "customer_summary": {
+            "$ref": "#/components/schemas/CustomerSummaryOut"
+          },
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "payment_method": {
+            "title": "Payment Method",
+            "type": "string"
+          },
+          "payment_status": {
+            "title": "Payment Status",
+            "type": "string"
+          },
+          "reschedule_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RescheduleRequestOwnerOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderServiceOut"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "staff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderStaffOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineOut"
+            },
+            "title": "Timeline",
+            "type": "array"
+          },
+          "total_price": {
+            "title": "Total Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "source",
+          "start",
+          "end",
+          "staff",
+          "services",
+          "total_price",
+          "payment_method",
+          "payment_status",
+          "customer",
+          "business_note",
+          "cancellation_reason",
+          "created_at",
+          "timeline",
+          "customer_summary",
+          "reschedule_request"
+        ],
+        "title": "ProviderAppointmentDetailOut",
+        "type": "object"
+      },
       "ProviderAppointmentOut": {
         "properties": {
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Actions",
+            "type": "array"
+          },
           "business_note": {
             "title": "Business Note",
             "type": "string"
@@ -2416,6 +2789,34 @@
           "created_at"
         ],
         "title": "ProviderAppointmentOut",
+        "type": "object"
+      },
+      "ProviderAppointmentPageOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderAppointmentOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "ProviderAppointmentPageOut",
         "type": "object"
       },
       "ProviderCustomerOut": {
@@ -2718,6 +3119,18 @@
         "title": "RegisterOwnerIn",
         "type": "object"
       },
+      "RejectIn": {
+        "properties": {
+          "reason": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "title": "RejectIn",
+        "type": "object"
+      },
       "ReplyOut": {
         "properties": {
           "body": {
@@ -2808,6 +3221,54 @@
           "new_end"
         ],
         "title": "RescheduleRequestOut",
+        "type": "object"
+      },
+      "RescheduleRequestOwnerOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "new_end": {
+            "format": "date-time",
+            "title": "New End",
+            "type": "string"
+          },
+          "new_staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Staff Id"
+          },
+          "new_start": {
+            "format": "date-time",
+            "title": "New Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "new_start",
+          "new_end",
+          "new_staff_id",
+          "status",
+          "created_at"
+        ],
+        "title": "RescheduleRequestOwnerOut",
         "type": "object"
       },
       "ResolutionIn": {
@@ -4169,6 +4630,40 @@
           "note"
         ],
         "title": "TimelineEventOut",
+        "type": "object"
+      },
+      "TimelineOut": {
+        "properties": {
+          "actor_role": {
+            "title": "Actor Role",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_status": {
+            "title": "From Status",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "to_status": {
+            "title": "To Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_status",
+          "to_status",
+          "actor_role",
+          "note",
+          "created_at"
+        ],
+        "title": "TimelineOut",
         "type": "object"
       },
       "TokenIn": {
@@ -5627,6 +6122,426 @@
         ]
       }
     },
+    "/api/v1/provider/appointments/{appointment_id}": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_appointment_detail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentDetailOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Appointment Detail",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/accept": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_accept_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Accept Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/cancel": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_cancel_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Cancel Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/complete": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_complete_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Complete Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/decline": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_decline_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Decline Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/no-show": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_no_show_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "No Show Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/note": {
+      "put": {
+        "operationId": "apps_bookings_api_provider_note_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Note Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/reschedule": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_reschedule_appointment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerRescheduleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Reschedule Appointment",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/reschedule-request/accept": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_accept_request",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Accept Request",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/appointments/{appointment_id}/reschedule-request/decline": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_decline_request",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "appointment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Appointment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Decline Request",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/blocks/{block_id}": {
       "delete": {
         "operationId": "apps_businesses_api_provider_remove_block",
@@ -5802,6 +6717,315 @@
           }
         ],
         "summary": "Patch Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/appointments": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_list_appointments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "staff_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Staff Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "service_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2000,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentPageOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Appointments",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/appointments/changes": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_appointment_changes",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "since",
+            "required": true,
+            "schema": {
+              "format": "date-time",
+              "title": "Since",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangesOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Appointment Changes",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/appointments/needs-action": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_appointments_needing_action",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NeedsActionOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Appointments Needing Action",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/appointments/today": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_appointments_today",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderAppointmentOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Appointments Today",
         "tags": [
           "provider"
         ]

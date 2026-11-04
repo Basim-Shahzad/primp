@@ -141,6 +141,10 @@ Set in the environment or `.env`. Production (`config.settings.prod`) refuses to
 | `AWS_PRIVATE_BUCKET_NAME` | empty | private bucket for verification documents (enables S3 for them) |
 | `PRIVATE_URL_TTL_SECONDS` | `300` | validity of signed document download links |
 | `DOCUMENT_MAX_BYTES` | `10485760` | max verification document size (10 MB) |
+| `PENDING_ESCALATION_MINUTES` | `120` | pending manual-accept booking: alert the owner after this long |
+| `PENDING_AUTO_CANCEL_MINUTES` | `720` | pending booking auto-cancelled after this long (or at its start time, whichever is first) |
+| `PROVIDER_COMPLETE_TOLERANCE_MINUTES` | `15` | an owner may mark a booking complete this long before its start |
+| `PROVIDER_NO_SHOW_GRACE_MINUTES` | `15` | an owner may mark a no-show only this long after the start |
 
 ## API overview
 

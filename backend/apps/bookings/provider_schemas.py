@@ -80,6 +80,7 @@ class ProviderAppointmentOut(Schema):
     customer: ProviderCustomerOut
     business_note: str
     cancellation_reason: str
+    allowed_actions: list[str] = Field(default_factory=list)
     created_at: datetime
 
 
@@ -127,3 +128,72 @@ class ScheduleOut(Schema):
     blocks: list[BlockOut]
     appointments: list[ProviderAppointmentOut]
     holds_count: int
+
+
+class TimelineOut(Schema):
+    from_status: str
+    to_status: str
+    actor_role: str
+    note: str
+    created_at: datetime
+
+
+class CustomerSummaryOut(Schema):
+    user_id: uuid.UUID | None
+    name: str
+    phone: str | None
+    previous_completed_visits: int
+    no_show_count: int
+
+
+class RescheduleRequestOwnerOut(Schema):
+    id: int
+    new_start: datetime
+    new_end: datetime
+    new_staff_id: int | None
+    status: str
+    created_at: datetime
+
+
+class ProviderAppointmentDetailOut(ProviderAppointmentOut):
+    timeline: list[TimelineOut]
+    customer_summary: CustomerSummaryOut
+    reschedule_request: RescheduleRequestOwnerOut | None
+
+
+class ProviderAppointmentPageOut(Schema):
+    items: list[ProviderAppointmentOut]
+    next_cursor: str | None
+
+
+class NeedsActionRescheduleOut(Schema):
+    request: RescheduleRequestOwnerOut
+    appointment: ProviderAppointmentOut
+
+
+class NeedsActionOut(Schema):
+    unread_count: int
+    pending: list[ProviderAppointmentOut]
+    reschedule_requests: list[NeedsActionRescheduleOut]
+
+
+class ChangesOut(Schema):
+    server_time: datetime
+    appointments: list[ProviderAppointmentOut]
+
+
+class RejectIn(Schema):
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)] = ""
+
+
+class CancelIn(Schema):
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+
+
+class OwnerRescheduleIn(Schema):
+    start: AwareDatetime
+    staff_id: int | None = None
+
+
+class NoteIn(Schema):
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)]

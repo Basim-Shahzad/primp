@@ -12,6 +12,7 @@ CUSTOMER_SMS = {
     "reminder_2h": "Reminder: {services} at {business_name} today at {time}. See you soon!",
     "review_prompt": "How was {business_name}? Rate your visit on Primp.",
     "onboarding_status_changed": "Primp: {business_name} is now {status}. {message}",
+    "pending_escalation": "Primp: {customer_name} is waiting for you to accept {services} on {date} at {time}. Please respond.",
     "booking_reassigned": "Primp: your {services} at {business_name} on {date} at {time} is now with {staff_name}.",
 }
 
@@ -48,6 +49,10 @@ EMAIL = {
     "review_prompt": (
         "How was your visit?",
         "Hi {customer_name}, tell others about {business_name}. Leave a review on Primp.",
+    ),
+    "pending_escalation": (
+        "A booking is waiting for you",
+        "{customer_name} is waiting for you to accept {services} on {date} at {time}. Please accept or decline it.",
     ),
     "booking_reassigned": (
         "Your appointment has a new staff member",

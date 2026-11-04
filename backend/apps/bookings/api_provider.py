@@ -1,7 +1,7 @@
 """Provider-side booking endpoints (staff impact workflow now; dashboard actions follow)."""
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Literal
 
 from django.http import HttpRequest
@@ -11,19 +11,35 @@ from apps.accounts.auth import jwt_auth
 from apps.accounts.phone import normalize_pk_mobile
 from apps.accounts.roles import Role
 from apps.core.errors import validation_error
+from apps.core.pagination import DEFAULT_LIMIT, MAX_LIMIT
 from apps.core.permissions import require_role
 
-from . import provider_schedule, provider_selectors, staff_impact
+from . import (
+    provider_actions,
+    provider_dashboard,
+    provider_schedule,
+    provider_selectors,
+    staff_impact,
+)
 from .provider_schemas import (
     ApplyOut,
     BlockOut,
+    CancelIn,
+    ChangesOut,
     ConflictOut,
     DayHoursOut,
     DeactivateIn,
     ImpactItemOut,
     ImpactOut,
     ManualBookingIn,
+    NeedsActionOut,
+    NeedsActionRescheduleOut,
+    NoteIn,
+    OwnerRescheduleIn,
+    ProviderAppointmentDetailOut,
     ProviderAppointmentOut,
+    ProviderAppointmentPageOut,
+    RejectIn,
     ResolutionIn,
     ScheduleOut,
     ShiftOut,
@@ -167,3 +183,167 @@ def get_schedule(
         appointments=provider_selectors.appointment_outs(sched.appointments),
         holds_count=sched.holds_count,
     )
+
+
+# ---- dashboard ----
+
+
+class AppointmentListQuery(Schema):
+    from_date: date | None = Field(None, alias="from")
+    to_date: date | None = Field(None, alias="to")
+    staff_id: int | None = None
+    status: str | None = Field(None, max_length=200)
+    service_id: int | None = None
+    q: str | None = Field(None, max_length=200)
+    order: Literal["asc", "desc"] = "asc"
+    cursor: str | None = Field(None, max_length=2000)
+    limit: int = Field(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT)
+
+
+def _outs(rows: list) -> list[ProviderAppointmentOut]:  # type: ignore[type-arg]
+    return provider_selectors.appointment_outs(rows)
+
+
+@provider_router.get("/businesses/{business_id}/appointments", response=ProviderAppointmentPageOut)
+def list_appointments(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[AppointmentListQuery]
+) -> ProviderAppointmentPageOut:
+    user = owner_only(request)
+    page = provider_dashboard.list_appointments(
+        user.pk,
+        str(business_id),
+        provider_dashboard.ListParams(
+            from_date=params.from_date,
+            to_date=params.to_date,
+            staff_id=params.staff_id,
+            status=params.status,
+            service_id=params.service_id,
+            q=params.q,
+            order=params.order,
+            cursor=params.cursor,
+            limit=params.limit,
+        ),
+    )
+    return ProviderAppointmentPageOut(items=_outs(page.items), next_cursor=page.next_cursor)
+
+
+@provider_router.get(
+    "/businesses/{business_id}/appointments/today", response=list[ProviderAppointmentOut]
+)
+def appointments_today(
+    request: HttpRequest, business_id: uuid.UUID
+) -> list[ProviderAppointmentOut]:
+    user = owner_only(request)
+    return _outs(provider_dashboard.today(user.pk, str(business_id)))
+
+
+@provider_router.get("/businesses/{business_id}/appointments/needs-action", response=NeedsActionOut)
+def appointments_needing_action(request: HttpRequest, business_id: uuid.UUID) -> NeedsActionOut:
+    user = owner_only(request)
+    found = provider_dashboard.needs_action(user.pk, str(business_id))
+    request_rows = [a for _r, a in found.requests]
+    outs = _outs(found.pending + request_rows)
+    pending_outs, request_outs = outs[: len(found.pending)], outs[len(found.pending) :]
+    return NeedsActionOut(
+        unread_count=found.unread_count,
+        pending=pending_outs,
+        reschedule_requests=[
+            NeedsActionRescheduleOut(request=provider_dashboard.request_out(r), appointment=out)
+            for (r, _a), out in zip(found.requests, request_outs, strict=True)
+        ],
+    )
+
+
+@provider_router.get("/businesses/{business_id}/appointments/changes", response=ChangesOut)
+def appointment_changes(
+    request: HttpRequest, business_id: uuid.UUID, since: datetime
+) -> ChangesOut:
+    user = owner_only(request)
+    server_time, rows = provider_dashboard.changes_since(user.pk, str(business_id), since)
+    return ChangesOut(server_time=server_time, appointments=_outs(rows))
+
+
+@provider_router.get("/appointments/{appointment_id}", response=ProviderAppointmentDetailOut)
+def appointment_detail(
+    request: HttpRequest, appointment_id: uuid.UUID
+) -> ProviderAppointmentDetailOut:
+    user = owner_only(request)
+    return provider_dashboard.detail(user.pk, str(appointment_id))
+
+
+# ---- actions ----
+
+
+def _one(appointment: object) -> ProviderAppointmentOut:
+    fresh = provider_selectors.base_queryset().get(pk=appointment.pk)  # type: ignore[attr-defined]
+    return provider_selectors.appointment_outs([fresh])[0]
+
+
+@provider_router.post("/appointments/{appointment_id}/accept", response=ProviderAppointmentOut)
+def accept_appointment(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.accept(user.pk, str(appointment_id)))
+
+
+@provider_router.post("/appointments/{appointment_id}/decline", response=ProviderAppointmentOut)
+def decline_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: RejectIn
+) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.decline(user.pk, str(appointment_id), payload.reason))
+
+
+@provider_router.post("/appointments/{appointment_id}/cancel", response=ProviderAppointmentOut)
+def cancel_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: CancelIn
+) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.cancel(user.pk, str(appointment_id), payload.reason))
+
+
+@provider_router.post("/appointments/{appointment_id}/reschedule", response=ProviderAppointmentOut)
+def reschedule_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: OwnerRescheduleIn
+) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(
+        provider_actions.reschedule(
+            user.pk, str(appointment_id), start=payload.start, staff_id=payload.staff_id
+        )
+    )
+
+
+@provider_router.post("/appointments/{appointment_id}/complete", response=ProviderAppointmentOut)
+def complete_appointment(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.complete(user.pk, str(appointment_id)))
+
+
+@provider_router.post("/appointments/{appointment_id}/no-show", response=ProviderAppointmentOut)
+def no_show_appointment(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.no_show(user.pk, str(appointment_id)))
+
+
+@provider_router.put("/appointments/{appointment_id}/note", response=ProviderAppointmentOut)
+def note_appointment(
+    request: HttpRequest, appointment_id: uuid.UUID, payload: NoteIn
+) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.set_note(user.pk, str(appointment_id), payload.note))
+
+
+@provider_router.post(
+    "/appointments/{appointment_id}/reschedule-request/accept", response=ProviderAppointmentOut
+)
+def accept_request(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.accept_reschedule_request(user.pk, str(appointment_id)))
+
+
+@provider_router.post(
+    "/appointments/{appointment_id}/reschedule-request/decline", response=ProviderAppointmentOut
+)
+def decline_request(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
+    user = owner_only(request)
+    return _one(provider_actions.decline_reschedule_request(user.pk, str(appointment_id)))

@@ -1,0 +1,14 @@
+# ADR-016: Owner booking dashboard
+
+- **Actions** (all re-check ownership in the service, lock the row, reuse the 6.1 status machine and return the refreshed booking with `allowed_actions`):
+  - `accept` pending -> confirmed (not after the start time); `decline` pending -> cancelled by business (reason optional); `cancel` pending/confirmed -> cancelled by business (reason required, <= 500 chars); anything else is 409 `invalid_transition`.
+  - `complete` only when confirmed and `now >= start - PROVIDER_COMPLETE_TOLERANCE_MINUTES` (default 15), else 409 `appointment_not_started`. `no-show` only when confirmed and `now >= start + PROVIDER_NO_SHOW_GRACE_MINUTES` (default 15), else 409 `no_show_too_early`. Both emit the existing events, so points, review prompt and the customer's `no_show_count` (new, on `CustomerProfile`, walk-ins excluded) follow; the points ledger keeps them exactly-once.
+  - `reschedule` (owner): same checks as manual bookings (`window_problems`, any minute, may change staff in staff mode), never into the past or for a started booking; pending customer reschedule requests on that booking are cancelled; the customer is notified, the owner is not.
+  - Customer reschedule requests are answered with `reschedule-request/accept|decline` on the appointment (the single pending request).
+  - `note` stores one private text on `Appointment.business_note`; the customer API never exposes it.
+- **Phone visibility**: the customer's phone is returned only for active (pending/confirmed) bookings that have not ended; past, closed and cancelled bookings show no phone.
+- **Needs-action** = pending bookings that start in the future plus pending reschedule requests on active bookings. `unread_count` is the number of such items: each stays "unread" until it is answered, so no separate seen-state is stored.
+- **Today** is the business-local day, ordered by start, without cancelled bookings. **List** is cursor-paginated by start (asc/desc), filters: date range (inclusive local days, <= 366), staff, status (comma list), service, search (customer name, walk-in name, phone suffix; 2-100 chars).
+- **Polling feed** `GET .../appointments/changes?since=` returns appointments (max 200) whose `updated_at`, or whose reschedule request's `updated_at`, is after `since`, plus `server_time` to use as the next `since`. An index on `(business, updated_at)` backs it.
+- **Auto-escalation** (beat, every 5 min, idempotent): a pending booking older than `PENDING_ESCALATION_MINUTES` (120) gets one `pending_escalation` alert to the owner (claim row); a pending booking older than `PENDING_AUTO_CANCEL_MINUTES` (720), or already at its start time, whichever comes first, is cancelled by actor role `system` and the customer is told. If both thresholds have passed in one run only the cancellation happens.
+- `services.cancel_by_business` now also cancels pending reschedule requests of the cancelled booking (customer cancellation already did).

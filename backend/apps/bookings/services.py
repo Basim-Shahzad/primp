@@ -420,6 +420,9 @@ def cancel_by_business(appointment_id: int, actor: Actor, reason: str = "") -> A
         appointment.cancellation_reason = "business"
         appointment.cancellation_note = reason[:500]
         appointment.save(update_fields=["cancellation_reason", "cancellation_note", "updated_at"])
+        RescheduleRequest.objects.filter(
+            appointment=appointment, status=RescheduleStatus.PENDING
+        ).update(status=RescheduleStatus.CANCELLED, decided_at=timezone.now())
         events.emit(events.booking_cancelled, appointment.pk, cancelled_by="business")
     return appointment
 
@@ -572,13 +575,15 @@ def _apply_move(
     staff_id: int | None,
     actor: Actor,
     note: str,
+    by: str = "customer",
+    **event_kwargs: object,
 ) -> None:
     appointment.scheduled_start = start
     appointment.scheduled_end = end
     appointment.staff_id = staff_id
     appointment.save(update_fields=["scheduled_start", "scheduled_end", "staff", "updated_at"])
     _record(appointment, appointment.status, appointment.status, actor, note)
-    events.emit(events.booking_rescheduled, appointment.pk)
+    events.emit(events.booking_rescheduled, appointment.pk, by=by, **event_kwargs)
 
 
 def reschedule_by_customer(
@@ -695,6 +700,8 @@ def accept_reschedule(
                 request.new_staff_id,
                 actor,
                 "reschedule accepted",
+                by="business",
+                accepted_request=True,
             )
             request.status = RescheduleStatus.ACCEPTED
             request.decided_at = now

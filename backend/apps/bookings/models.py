@@ -84,6 +84,7 @@ class Appointment(PublicIdMixin, TimeStampedModel):
             models.Index(fields=["business", "scheduled_start"]),
             models.Index(fields=["customer", "scheduled_start"]),
             models.Index(fields=["status", "scheduled_start"]),
+            models.Index(fields=["business", "updated_at"]),
         ]
         constraints = [
             models.CheckConstraint(

@@ -180,6 +180,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "schedule": 300.0,
         "options": {"queue": "default"},
     },
+    "pending-escalation": {
+        "task": "apps.bookings.tasks.escalate_pending_bookings",
+        "schedule": 300.0,
+        "options": {"queue": "default"},
+    },
     "loyalty-reconcile": {
         "task": "apps.loyalty.tasks.reconcile_accounts",
         "schedule": crontab(hour=21, minute=30),  # 02:30 Asia/Karachi
@@ -241,6 +246,10 @@ PROVIDER_TERMS_VERSION = env.str("PROVIDER_TERMS_VERSION", default="2026-01")
 CITY_MAX_RADIUS_KM = env.float("CITY_MAX_RADIUS_KM", default=60.0)
 PRIVATE_URL_TTL_SECONDS = env.int("PRIVATE_URL_TTL_SECONDS", default=300)
 DOCUMENT_MAX_BYTES = env.int("DOCUMENT_MAX_BYTES", default=10 * 1024 * 1024)
+PENDING_ESCALATION_MINUTES = env.int("PENDING_ESCALATION_MINUTES", default=120)
+PENDING_AUTO_CANCEL_MINUTES = env.int("PENDING_AUTO_CANCEL_MINUTES", default=720)
+PROVIDER_COMPLETE_TOLERANCE_MINUTES = env.int("PROVIDER_COMPLETE_TOLERANCE_MINUTES", default=15)
+PROVIDER_NO_SHOW_GRACE_MINUTES = env.int("PROVIDER_NO_SHOW_GRACE_MINUTES", default=15)
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)

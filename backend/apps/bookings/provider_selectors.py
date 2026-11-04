@@ -1,13 +1,16 @@
 """Read side of the provider booking dashboard: owner-facing appointment shapes."""
 
 from collections.abc import Iterable
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from django.db.models import QuerySet
+from django.utils import timezone
 
 from apps.accounts import selectors as accounts
 
 from .models import ACTIVE_STATUSES, Appointment
+from .provider_actions import allowed_actions
 from .provider_schemas import (
     ProviderAppointmentOut,
     ProviderCustomerOut,
@@ -23,10 +26,14 @@ def base_queryset() -> QuerySet[Appointment]:
 
 
 def appointment_outs(
-    appointments: Iterable[Appointment], *, hide_inactive_phone: bool = True
+    appointments: Iterable[Appointment],
+    *,
+    hide_inactive_phone: bool = True,
+    now: datetime | None = None,
 ) -> list[ProviderAppointmentOut]:
-    """Owner view of appointments. The customer's phone is only shown for active bookings."""
+    """Owner view of appointments. The customer's phone is shown only for active, upcoming ones."""
     rows = list(appointments)
+    now = now or timezone.now()
     contacts = accounts.contacts_for([a.customer_id for a in rows if a.customer_id is not None])
     out: list[ProviderAppointmentOut] = []
     for a in rows:
@@ -34,7 +41,8 @@ def appointment_outs(
         contact = contacts.get(a.customer_id) if a.customer_id is not None else None
         name = (contact.name if contact and contact.name else a.walk_in_name) or "Customer"
         phone = (contact.phone if contact else None) or a.walk_in_phone or None
-        if hide_inactive_phone and a.status not in ACTIVE_STATUSES:
+        past_or_closed = a.status not in ACTIVE_STATUSES or a.scheduled_end <= now
+        if hide_inactive_phone and past_or_closed:
             phone = None
         out.append(
             ProviderAppointmentOut(
@@ -63,6 +71,7 @@ def appointment_outs(
                 ),
                 business_note=a.business_note,
                 cancellation_reason=a.cancellation_reason,
+                allowed_actions=allowed_actions(a, now),
                 created_at=a.created_at,
             )
         )

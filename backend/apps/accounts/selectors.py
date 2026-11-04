@@ -83,3 +83,8 @@ def contacts_for(user_ids: list[int]) -> dict[int, Contact]:
         CustomerProfile.objects.filter(user_id__in=user_ids).values_list("user_id", "name")
     )
     return {uid: Contact(uid, names.get(uid) or "", u.phone, u.email) for uid, u in users.items()}
+
+
+def no_show_count(user_id: int) -> int:
+    value = CustomerProfile.objects.filter(user_id=user_id).values_list("no_show_count", flat=True)
+    return int(value.first() or 0)

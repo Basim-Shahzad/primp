@@ -119,6 +119,7 @@ class CustomerProfile(TimeStampedModel):
     default_area = models.ForeignKey(
         "geo.Area", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
+    no_show_count = models.PositiveIntegerField(default=0)
     referral_code = models.CharField(max_length=12, unique=True, editable=False)
     referred_by = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="referrals"

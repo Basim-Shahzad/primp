@@ -69,13 +69,14 @@ def on_cancelled(appointment_id: int, cancelled_by: str = "", **_: Any) -> None:
         _to_customer(brief, "booking_cancelled")
 
 
-def on_rescheduled(appointment_id: int, **_: Any) -> None:
+def on_rescheduled(appointment_id: int, by: str = "customer", **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
         _to_customer(brief, "booking_rescheduled")
-        services.notify(
-            brief.owner_id, "provider_booking_rescheduled", brief.payload(), include_sms=False
-        )
+        if by == "customer":  # the owner already knows about their own moves
+            services.notify(
+                brief.owner_id, "provider_booking_rescheduled", brief.payload(), include_sms=False
+            )
 
 
 def on_reschedule_requested(appointment_id: int, **_: Any) -> None:
