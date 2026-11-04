@@ -1,12 +1,13 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, time
+from typing import Any
 
 from django.db.models import Count, Min, QuerySet
 
 from apps.geo.selectors import public_city_lookups
 
-from .models import Business, Closure, OpeningHours, Service, Staff, StaffService
+from .models import Business, Closure, OpeningHours, Service, Staff, StaffService, StarterMenuItem
 
 
 def public_businesses() -> QuerySet[Business]:
@@ -188,3 +189,60 @@ def public_business_id(public_id: uuid.UUID) -> int | None:
 def any_business_id(public_id: uuid.UUID) -> int | None:
     """Database id of a business regardless of visibility (for removals)."""
     return Business.objects.filter(public_id=public_id).values_list("pk", flat=True).first()
+
+
+# ---- provider side ----
+
+
+def owned_business(user_id: int, business_ref: str | uuid.UUID, *, lock: bool = False) -> Business:
+    """The business if `user_id` owns it, else 404 (existence is never leaked)."""
+    from apps.core.errors import not_found
+
+    try:
+        public_id = business_ref if isinstance(business_ref, uuid.UUID) else uuid.UUID(business_ref)
+    except ValueError:
+        raise not_found() from None
+    qs = Business.objects.filter(public_id=public_id, owner_id=user_id)
+    qs = qs.select_for_update(of=("self",)) if lock else qs
+    business = qs.select_related("city", "area", "category").first()
+    if business is None:
+        raise not_found()
+    return business
+
+
+def get_owned_business_or_404(user: Any, business_id: str | uuid.UUID) -> Business:
+    return owned_business(int(user.pk), business_id)
+
+
+def owned_staff(user_id: int, staff_id: int) -> Staff:
+    from apps.core.errors import not_found
+
+    staff = (
+        Staff.objects.filter(pk=staff_id, business__owner_id=user_id)
+        .select_related("business")
+        .first()
+    )
+    if staff is None:
+        raise not_found()
+    return staff
+
+
+def owned_service(user_id: int, service_id: int) -> Service:
+    from apps.core.errors import not_found
+
+    service = (
+        Service.objects.filter(pk=service_id, business__owner_id=user_id)
+        .select_related("business")
+        .first()
+    )
+    if service is None:
+        raise not_found()
+    return service
+
+
+def starter_menu(category_id: int) -> list[StarterMenuItem]:
+    from apps.catalog.selectors import category_ids_with_descendants
+
+    return list(
+        StarterMenuItem.objects.filter(category_id__in=category_ids_with_descendants(category_id))
+    )

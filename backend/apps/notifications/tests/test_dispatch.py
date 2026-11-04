@@ -37,6 +37,8 @@ PAYLOAD = {
     "late_note": "",
     "reason": "price",
     "code": "123456",
+    "status": "pending",
+    "message": "",
 }
 
 

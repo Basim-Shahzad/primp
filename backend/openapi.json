@@ -408,6 +408,43 @@
         "title": "BookingRulesOut",
         "type": "object"
       },
+      "BusinessCreateIn": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "city_id": {
+            "title": "City Id",
+            "type": "integer"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "gender_type": {
+            "pattern": "^(women|men|unisex)$",
+            "title": "Gender Type",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "category_id",
+          "gender_type",
+          "city_id"
+        ],
+        "title": "BusinessCreateIn",
+        "type": "object"
+      },
       "BusinessPageOut": {
         "properties": {
           "address": {
@@ -612,6 +649,37 @@
         "title": "CategoryRefOut",
         "type": "object"
       },
+      "ChecklistItemOut": {
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "required",
+          "done",
+          "missing"
+        ],
+        "title": "ChecklistItemOut",
+        "type": "object"
+      },
       "CityRefOut": {
         "properties": {
           "id": {
@@ -771,6 +839,55 @@
           "requested_at"
         ],
         "title": "DeletionOut",
+        "type": "object"
+      },
+      "DocumentOut": {
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "reviewer_note": {
+            "title": "Reviewer Note",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "reviewer_note",
+          "content_type",
+          "size",
+          "url",
+          "created_at"
+        ],
+        "title": "DocumentOut",
         "type": "object"
       },
       "EmailChangeIn": {
@@ -1157,6 +1274,200 @@
         "title": "OTPVerifyIn",
         "type": "object"
       },
+      "OnboardingOut": {
+        "properties": {
+          "completed_steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Completed Steps",
+            "type": "array"
+          },
+          "is_complete": {
+            "title": "Is Complete",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "last_step": {
+            "title": "Last Step",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "status_message": {
+            "title": "Status Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "status_message",
+          "completed_steps",
+          "last_step",
+          "is_complete",
+          "items"
+        ],
+        "title": "OnboardingOut",
+        "type": "object"
+      },
+      "OwnerBusinessOut": {
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "area_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Id"
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "city_id": {
+            "title": "City Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "gender_type": {
+            "title": "Gender Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_listed": {
+            "title": "Is Listed",
+            "type": "boolean"
+          },
+          "is_verified": {
+            "title": "Is Verified",
+            "type": "boolean"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "title": "Lng",
+            "type": "number"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pending_review_changes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Review Changes"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "revoked_reason": {
+            "title": "Revoked Reason",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "status_message": {
+            "title": "Status Message",
+            "type": "string"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          },
+          "whatsapp": {
+            "title": "Whatsapp",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "category_id",
+          "city_id",
+          "area_id",
+          "description",
+          "address",
+          "phone",
+          "whatsapp",
+          "gender_type",
+          "lat",
+          "lng",
+          "logo_url",
+          "status",
+          "status_message",
+          "is_listed",
+          "is_verified",
+          "verified_at",
+          "revoked_reason",
+          "pending_review_changes",
+          "created_at"
+        ],
+        "title": "OwnerBusinessOut",
+        "type": "object"
+      },
       "PasswordResetConfirmIn": {
         "properties": {
           "new_password": {
@@ -1249,6 +1560,44 @@
           "is_cover"
         ],
         "title": "PhotoOut",
+        "type": "object"
+      },
+      "PhotoOutOwner": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_cover": {
+            "title": "Is Cover",
+            "type": "boolean"
+          },
+          "medium": {
+            "title": "Medium",
+            "type": "string"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
+          },
+          "thumb": {
+            "title": "Thumb",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "medium",
+          "thumb",
+          "is_cover",
+          "sort_order"
+        ],
+        "title": "PhotoOutOwner",
         "type": "object"
       },
       "PointsOut": {
@@ -1517,6 +1866,47 @@
           "password"
         ],
         "title": "RegisterIn",
+        "type": "object"
+      },
+      "RegisterOwnerIn": {
+        "properties": {
+          "code": {
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "phone": {
+            "maxLength": 20,
+            "title": "Phone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "phone",
+          "code",
+          "email",
+          "password"
+        ],
+        "title": "RegisterOwnerIn",
         "type": "object"
       },
       "ReplyOut": {
@@ -2357,6 +2747,68 @@
           "name"
         ],
         "title": "StaffRefOut",
+        "type": "object"
+      },
+      "StarterItemOut": {
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "integer"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "category_id",
+          "name",
+          "description",
+          "price",
+          "duration_minutes"
+        ],
+        "title": "StarterItemOut",
+        "type": "object"
+      },
+      "SubmitIn": {
+        "properties": {
+          "accept_commission_terms": {
+            "title": "Accept Commission Terms",
+            "type": "boolean"
+          },
+          "accept_provider_agreement": {
+            "title": "Accept Provider Agreement",
+            "type": "boolean"
+          },
+          "terms_version": {
+            "maxLength": 20,
+            "title": "Terms Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accept_provider_agreement",
+          "accept_commission_terms",
+          "terms_version"
+        ],
+        "title": "SubmitIn",
         "type": "object"
       },
       "SuggestionOut": {
@@ -3593,6 +4045,38 @@
         ]
       }
     },
+    "/api/v1/auth/register/business-owner": {
+      "post": {
+        "operationId": "apps_accounts_api_register_business_owner",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterOwnerIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "summary": "Register Business Owner",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/businesses/{business_id}/availability": {
       "get": {
         "operationId": "apps_bookings_api_get_availability",
@@ -3788,6 +4272,38 @@
         ]
       }
     },
+    "/api/v1/files/documents/{token}": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_download_document",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Download Document",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/payments/webhooks/{provider}": {
       "post": {
         "operationId": "apps_payments_api_webhook",
@@ -3817,6 +4333,534 @@
         "summary": "Webhook",
         "tags": [
           "payments"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_businesses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OwnerBusinessOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Businesses",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_create_business",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBusinessOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/documents": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_documents",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Documents",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_upload_document",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "title": "File",
+                    "type": "string"
+                  },
+                  "kind": {
+                    "title": "Kind",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "file"
+                ],
+                "title": "MultiPartBodyParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Upload Document",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/documents/{document_id}": {
+      "delete": {
+        "operationId": "apps_businesses_api_provider_delete_document",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Delete Document",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/logo": {
+      "post": {
+        "operationId": "apps_businesses_api_provider_upload_logo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "title": "File",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "title": "FileParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBusinessOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Upload Logo",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/onboarding": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_get_onboarding",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Onboarding",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/onboarding/{step}": {
+      "patch": {
+        "operationId": "apps_businesses_api_provider_patch_onboarding",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "step",
+            "required": true,
+            "schema": {
+              "title": "Step",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Patch Onboarding",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/photos": {
+      "post": {
+        "operationId": "apps_businesses_api_provider_upload_photos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "files": {
+                    "items": {
+                      "format": "binary",
+                      "type": "string"
+                    },
+                    "title": "Files",
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "files"
+                ],
+                "title": "FileParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOutOwner"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Upload Photos",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/submit": {
+      "post": {
+        "operationId": "apps_businesses_api_provider_submit_business",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBusinessOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Submit Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/starter-menu": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_starter_menu",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "category_id",
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StarterItemOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Starter Menu",
+        "tags": [
+          "provider"
         ]
       }
     },
@@ -4441,6 +5485,33 @@
         "summary": "My Next Appointment",
         "tags": [
           "appointments"
+        ]
+      }
+    },
+    "/api/v1/users/me/become-owner": {
+      "post": {
+        "operationId": "apps_accounts_api_become_owner",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Become Owner",
+        "tags": [
+          "users"
         ]
       }
     },

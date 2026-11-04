@@ -73,6 +73,16 @@ class Business(PublicIdMixin, TimeStampedModel):
     rating_count = models.PositiveIntegerField(default=0)
     timezone = models.CharField(max_length=64, default="Asia/Karachi")
 
+    logo = models.CharField(max_length=255, blank=True)
+    onboarding_progress = models.JSONField(default=dict, blank=True)
+    status_message = models.CharField(max_length=500, blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    revoked_reason = models.CharField(max_length=500, blank=True)
+    pending_review_changes = models.JSONField(null=True, blank=True)
+
     class Meta:
         verbose_name_plural = "businesses"
         constraints = [
@@ -278,3 +288,75 @@ class Closure(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.business_id} {self.kind}"
+
+
+class DocumentKind(models.TextChoices):
+    CNIC_FRONT = "cnic_front", _("CNIC front")
+    CNIC_BACK = "cnic_back", _("CNIC back")
+    LICENCE = "licence", _("Licence")
+    SELFIE_WITH_CNIC = "selfie_with_cnic", _("Selfie with CNIC")
+    STOREFRONT = "storefront", _("Storefront")
+
+
+class DocumentStatus(models.TextChoices):
+    PENDING = "pending", _("Pending")
+    ACCEPTED = "accepted", _("Accepted")
+    REJECTED = "rejected", _("Rejected")
+
+
+class BusinessDocument(TimeStampedModel):
+    """Verification document kept in private storage; never publicly addressable."""
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="documents")
+    kind = models.CharField(max_length=20, choices=DocumentKind.choices)
+    file = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=50)
+    size = models.PositiveIntegerField()
+    status = models.CharField(
+        max_length=10, choices=DocumentStatus.choices, default=DocumentStatus.PENDING
+    )
+    reviewer_note = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["id"]
+        indexes = [models.Index(fields=["business", "kind"])]
+
+    def __str__(self) -> str:
+        return f"{self.business_id}:{self.kind}"
+
+
+class BusinessSubmission(models.Model):
+    """One row per submission for review, recording the accepted terms."""
+
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name="submissions")
+    number = models.PositiveSmallIntegerField()
+    terms_version = models.CharField(max_length=20)
+    is_resubmission_after_rejection = models.BooleanField(default=False)
+    accepted_at = models.DateTimeField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["number"]
+        constraints = [
+            models.UniqueConstraint(fields=["business", "number"], name="submission_unique_number")
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.business_id}#{self.number}"
+
+
+class StarterMenuItem(models.Model):
+    """Editable service templates suggested to new businesses of a category."""
+
+    category = models.ForeignKey("catalog.Category", on_delete=models.CASCADE, related_name="+")
+    name = models.CharField(max_length=150)
+    description = models.CharField(max_length=300, blank=True)
+    price = models.PositiveIntegerField(help_text="PKR")
+    duration_minutes = models.PositiveIntegerField()
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self) -> str:
+        return self.name

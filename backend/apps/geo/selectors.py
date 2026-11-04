@@ -37,3 +37,34 @@ def areas_in_city(city_id: int, *, exclude_id: int | None = None) -> list[Area]:
     if exclude_id is not None:
         qs = qs.exclude(pk=exclude_id)
     return list(qs.order_by("name")[:20])
+
+
+def get_onboardable_city(city_id: int) -> City | None:
+    """A city a new business may be placed in: active and not hidden."""
+    return (
+        City.objects.filter(pk=city_id, is_active=True)
+        .exclude(visibility=CityVisibility.HIDDEN)
+        .first()
+    )
+
+
+def get_onboardable_area(area_id: int, city_id: int) -> Area | None:
+    return (
+        Area.objects.filter(pk=area_id, city_id=city_id, is_active=True, city__is_active=True)
+        .exclude(city__visibility=CityVisibility.HIDDEN)
+        .select_related("city")
+        .first()
+    )
+
+
+def distance_km(a_lat: float, a_lng: float, b_lat: float, b_lng: float) -> float:
+    """Great-circle distance in kilometres (haversine)."""
+    from math import asin, cos, radians, sin, sqrt
+
+    dlat, dlng = radians(b_lat - a_lat), radians(b_lng - a_lng)
+    h = sin(dlat / 2) ** 2 + cos(radians(a_lat)) * cos(radians(b_lat)) * sin(dlng / 2) ** 2
+    return 2 * 6371.0088 * asin(sqrt(h))
+
+
+def within_city(city: City, lat: float, lng: float, max_km: float) -> bool:
+    return distance_km(city.centre.y, city.centre.x, lat, lng) <= max_km

@@ -11,6 +11,7 @@ CUSTOMER_SMS = {
     "reminder_24h": "Reminder: {services} at {business_name} tomorrow, {date} at {time}.",
     "reminder_2h": "Reminder: {services} at {business_name} today at {time}. See you soon!",
     "review_prompt": "How was {business_name}? Rate your visit on Primp.",
+    "onboarding_status_changed": "Primp: {business_name} is now {status}. {message}",
 }
 
 # (key, subject, body) used for email and in-app
@@ -46,6 +47,10 @@ EMAIL = {
     "review_prompt": (
         "How was your visit?",
         "Hi {customer_name}, tell others about {business_name}. Leave a review on Primp.",
+    ),
+    "onboarding_status_changed": (
+        "Your business status changed",
+        "{business_name} is now {status}. {message}",
     ),
     "provider_booking_created": (
         "New booking",

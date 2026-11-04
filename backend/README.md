@@ -135,6 +135,12 @@ Set in the environment or `.env`. Production (`config.settings.prod`) refuses to
 | `SENTRY_DSN` | empty | enables Sentry (no PII sent) |
 | `NOTIFICATIONS_RAISE_ON_RENDER_ERROR` | `False` | raise on template errors (tests) |
 | `LOYALTY_RAISE_ON_ERROR` | `False` | raise on loyalty handler errors (tests) |
+| `PROVIDER_TERMS_VERSION` | `2026-01` | version of the provider agreement/commission terms owners must accept |
+| `CITY_MAX_RADIUS_KM` | `60` | max distance of a business pin from its city centre |
+| `PRIVATE_MEDIA_ROOT` | `private_media/` | folder for verification documents (never served publicly) |
+| `AWS_PRIVATE_BUCKET_NAME` | empty | private bucket for verification documents (enables S3 for them) |
+| `PRIVATE_URL_TTL_SECONDS` | `300` | validity of signed document download links |
+| `DOCUMENT_MAX_BYTES` | `10485760` | max verification document size (10 MB) |
 
 ## API overview
 
