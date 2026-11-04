@@ -24,6 +24,85 @@
         "title": "ActionsOut",
         "type": "object"
       },
+      "AdminLoginIn": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "AdminLoginIn",
+        "type": "object"
+      },
+      "AdminMeOut": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "groups": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Permissions",
+            "type": "array"
+          },
+          "reauth_valid": {
+            "title": "Reauth Valid",
+            "type": "boolean"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "role",
+          "groups",
+          "permissions",
+          "reauth_valid"
+        ],
+        "title": "AdminMeOut",
+        "type": "object"
+      },
       "ApplyOut": {
         "properties": {
           "cancelled": {
@@ -3238,6 +3317,34 @@
         "title": "ReadOut",
         "type": "object"
       },
+      "ReauthIn": {
+        "properties": {
+          "password": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "ReauthIn",
+        "type": "object"
+      },
+      "ReauthOut": {
+        "properties": {
+          "valid_for_seconds": {
+            "title": "Valid For Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "valid_for_seconds"
+        ],
+        "title": "ReauthOut",
+        "type": "object"
+      },
       "RebookDraftOut": {
         "properties": {
           "business_id": {
@@ -5687,6 +5794,10 @@
       }
     },
     "securitySchemes": {
+      "AdminAuth": {
+        "scheme": "bearer",
+        "type": "http"
+      },
       "JWTAuth": {
         "scheme": "bearer",
         "type": "http"
@@ -5700,6 +5811,105 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/auth/login": {
+      "post": {
+        "description": "Admin-only password login (stricter throttle; other roles look like a bad login).",
+        "operationId": "apps_backoffice_api_admin_admin_login",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Admin Login",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/me": {
+      "get": {
+        "operationId": "apps_backoffice_api_admin_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminMeOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Me",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reauth": {
+      "post": {
+        "operationId": "apps_backoffice_api_admin_reauth",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReauthIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReauthOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Reauth",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/appointments": {
       "post": {
         "operationId": "apps_bookings_api_book_appointment",

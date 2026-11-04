@@ -93,3 +93,4 @@ def long_tokens(settings):  # type: ignore[no-untyped-def]
     from datetime import timedelta
 
     settings.ACCESS_TOKEN_LIFETIME = timedelta(days=3)
+    settings.ADMIN_ACCESS_TOKEN_LIFETIME = timedelta(days=3)

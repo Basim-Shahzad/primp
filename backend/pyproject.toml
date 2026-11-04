@@ -62,7 +62,7 @@ select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "DJ", "S", "T20", "RUF"]
 ignore = ["RUF012", "S101", "DJ001", "UP046", "UP047"]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = ["S105", "S106", "S311", "T20", "RUF059"]
+"**/tests/**" = ["S105", "S106", "S107", "S311", "T20", "RUF059"]
 "**/tests.py" = ["S105", "S106"]
 "conftest.py" = ["S105", "S106"]
 "scripts/*" = ["T201"]
@@ -113,7 +113,7 @@ include_external_packages = false
 name = "accounts does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.accounts"]
-forbidden_modules = ["apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -125,10 +125,25 @@ ignore_imports = [
 ]
 
 [[tool.importlinter.contracts]]
+name = "backoffice does not import other apps' models"
+type = "forbidden"
+source_modules = ["apps.backoffice"]
+forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+allow_indirect_imports = true
+unmatched_ignore_imports_alerting = "none"
+ignore_imports = [
+    "apps.backoffice.tests.** -> **",
+    "apps.backoffice.factories -> **",
+    "apps.backoffice.migrations.** -> **",
+    "apps.backoffice.management.** -> **",
+    "apps.backoffice.admin -> **",
+]
+
+[[tool.importlinter.contracts]]
 name = "bookings does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.bookings"]
-forbidden_modules = ["apps.accounts.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -143,7 +158,7 @@ ignore_imports = [
 name = "businesses does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.businesses"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -158,7 +173,7 @@ ignore_imports = [
 name = "catalog does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.catalog"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -173,7 +188,7 @@ ignore_imports = [
 name = "core does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.core"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -188,7 +203,7 @@ ignore_imports = [
 name = "geo does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.geo"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -203,7 +218,7 @@ ignore_imports = [
 name = "loyalty does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.loyalty"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.notifications.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -218,7 +233,7 @@ ignore_imports = [
 name = "notifications does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.notifications"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.payments.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.payments.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -233,7 +248,7 @@ ignore_imports = [
 name = "payments does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.payments"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.reviews.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.reviews.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [
@@ -248,7 +263,7 @@ ignore_imports = [
 name = "reviews does not import other apps' models"
 type = "forbidden"
 source_modules = ["apps.reviews"]
-forbidden_modules = ["apps.accounts.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models"]
+forbidden_modules = ["apps.accounts.models", "apps.backoffice.models", "apps.bookings.models", "apps.businesses.models", "apps.catalog.models", "apps.geo.models", "apps.loyalty.models", "apps.notifications.models", "apps.payments.models"]
 allow_indirect_imports = true
 unmatched_ignore_imports_alerting = "none"
 ignore_imports = [

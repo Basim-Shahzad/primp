@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "apps.reviews",
     "apps.payments",
     "apps.loyalty",
+    "apps.backoffice",
     "apps.accounts",
     "apps.notifications",
 ]
