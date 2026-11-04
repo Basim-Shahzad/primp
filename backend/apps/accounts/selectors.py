@@ -66,3 +66,20 @@ def full_names(user_ids: list[int]) -> dict[int, str]:
             "user_id", "name"
         )
     }
+
+
+def verified_user_id_by_phone(phone: str) -> int | None:
+    """Active account whose phone is verified and equals `phone` (E.164)."""
+    return (
+        User.objects.filter(phone=phone, is_phone_verified=True, status="active")
+        .values_list("pk", flat=True)
+        .first()
+    )
+
+
+def contacts_for(user_ids: list[int]) -> dict[int, Contact]:
+    users = {u.pk: u for u in User.objects.filter(pk__in=user_ids)}
+    names = dict(
+        CustomerProfile.objects.filter(user_id__in=user_ids).values_list("user_id", "name")
+    )
+    return {uid: Contact(uid, names.get(uid) or "", u.phone, u.email) for uid, u in users.items()}

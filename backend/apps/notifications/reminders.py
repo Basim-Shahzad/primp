@@ -18,6 +18,8 @@ def scan(now: datetime) -> int:
             brief = bookings.appointment_brief(appointment_id)
             if brief is None or brief.status != "confirmed":
                 continue  # cancelled between the scan query and the claim
+            if brief.customer_id is None:
+                continue  # walk-in without an account
             services.notify(brief.customer_id, kind, brief.payload())
             sent += 1
     return sent

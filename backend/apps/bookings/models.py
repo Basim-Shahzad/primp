@@ -39,8 +39,15 @@ class AppointmentSource(models.TextChoices):
 
 class Appointment(PublicIdMixin, TimeStampedModel):
     customer = models.ForeignKey(
-        "accounts.User", on_delete=models.PROTECT, related_name="appointments"
+        "accounts.User",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="appointments",
     )
+    walk_in_name = models.CharField(max_length=100, blank=True)
+    walk_in_phone = models.CharField(max_length=20, blank=True)
+    business_note = models.CharField(max_length=1000, blank=True)
     business = models.ForeignKey(
         "businesses.Business", on_delete=models.PROTECT, related_name="appointments"
     )

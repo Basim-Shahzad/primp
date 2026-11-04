@@ -60,7 +60,7 @@ class AppointmentBrief:
     id: int
     public_id: str
     status: str
-    customer_id: int
+    customer_id: int | None
     customer_name: str
     owner_id: int
     business_name: str
@@ -97,14 +97,14 @@ def appointment_brief(appointment_id: int) -> AppointmentBrief | None:
     )
     if a is None:
         return None
-    contact = accounts.contact_for(a.customer_id)
+    contact = accounts.contact_for(a.customer_id) if a.customer_id else None
     tz = ZoneInfo(a.business.timezone)
     return AppointmentBrief(
         id=a.pk,
         public_id=str(a.public_id),
         status=a.status,
         customer_id=a.customer_id,
-        customer_name=contact.name if contact else "",
+        customer_name=contact.name if contact else a.walk_in_name,
         owner_id=a.business.owner_id,
         business_name=a.business.name,
         staff_name=a.staff.name if a.staff else "",
@@ -147,7 +147,7 @@ def due_for_reminder(offset_seconds: int, now: datetime, grace_seconds: int = 18
 class AppointmentRef:
     id: int
     business_id: int
-    customer_id: int
+    customer_id: int | None
     status: str
     scheduled_start: datetime
 

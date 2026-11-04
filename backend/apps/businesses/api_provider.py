@@ -1,6 +1,7 @@
 """Provider (business owner) endpoints: onboarding, documents and media. Tagged `provider`."""
 
 import uuid
+from datetime import datetime
 from typing import Any
 
 from django.core.files.storage import default_storage
@@ -20,6 +21,8 @@ from . import page as page_service
 from . import staff as staff_mod
 from .models import Business, Closure, Service, Staff
 from .provider_schemas import (
+    BlockIn,
+    BlockOut,
     BookingSettingsIn,
     BookingSettingsOut,
     BusinessCreateIn,
@@ -514,3 +517,56 @@ def put_staff_hours(request: HttpRequest, staff_id: int, payload: HoursIn) -> Ho
     ]
     staff = staff_mod.set_hours(user.pk, staff_id, week)
     return week_out(hours.week_of(staff.business_id, staff.pk))
+
+
+# ---- blocks (part-day or multi-day, business or staff) ----
+
+
+def block_out(c: Closure) -> BlockOut:
+    return BlockOut(
+        id=c.pk,
+        kind=c.kind,
+        staff_id=c.staff_id,
+        starts_at=c.starts_at,
+        ends_at=c.ends_at,
+        reason=c.reason,
+    )
+
+
+@provider_router.get("/businesses/{business_id}/blocks", response=list[BlockOut])
+def list_blocks(
+    request: HttpRequest,
+    business_id: uuid.UUID,
+    after: datetime | None = None,
+    before: datetime | None = None,
+    staff_id: int | None = None,
+) -> list[BlockOut]:
+    user = owner_only(request)
+    rows = profile.list_blocks(
+        user.pk, str(business_id), after=after, before=before, staff_id=staff_id
+    )
+    return [block_out(c) for c in rows]
+
+
+@provider_router.post("/businesses/{business_id}/blocks", response={201: BlockOut})
+def create_block(
+    request: HttpRequest, business_id: uuid.UUID, payload: BlockIn
+) -> Status[BlockOut]:
+    user = owner_only(request)
+    block = profile.create_block(
+        user.pk,
+        str(business_id),
+        starts_at=payload.starts_at,
+        ends_at=payload.ends_at,
+        kind=payload.kind,
+        reason=payload.reason,
+        staff_id=payload.staff_id,
+    )
+    return Status(201, block_out(block))
+
+
+@provider_router.delete("/blocks/{block_id}", response={204: None})
+def remove_block(request: HttpRequest, block_id: int) -> Status[Any]:
+    user = owner_only(request)
+    profile.delete_closure(user.pk, block_id)
+    return Status(204, None)

@@ -5,7 +5,7 @@ from datetime import date, datetime, time
 from typing import Annotated, Any, Literal
 
 from ninja import Field, Schema
-from pydantic import StringConstraints
+from pydantic import AwareDatetime, StringConstraints
 
 from .models import Business, BusinessDocument
 from .provider_validators import E164, Address, Description, Text150
@@ -288,3 +288,23 @@ class StaffOut(Schema):
     is_active: bool
     service_ids: list[int]
     has_hours_override: bool
+
+
+# ---- blocks ----
+
+
+class BlockIn(Schema):
+    starts_at: AwareDatetime
+    ends_at: AwareDatetime
+    kind: Literal["block", "leave", "holiday"] = "block"
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, max_length=255)] = ""
+    staff_id: int | None = None
+
+
+class BlockOut(Schema):
+    id: int
+    kind: str
+    staff_id: int | None
+    starts_at: datetime
+    ends_at: datetime
+    reason: str

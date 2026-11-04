@@ -32,8 +32,8 @@ def _safe(handler: Callable[..., None]) -> Callable[..., None]:
 
 def on_booking_completed(appointment_id: int, **_: Any) -> None:
     brief = bookings.appointment_brief(appointment_id)
-    if brief is None:
-        return
+    if brief is None or brief.customer_id is None:
+        return  # walk-in without an account earns no points
     services.credit_booking_completed(
         customer_id=brief.customer_id,
         appointment_id=appointment_id,

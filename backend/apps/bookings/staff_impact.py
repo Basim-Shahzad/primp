@@ -78,14 +78,14 @@ def impact(
     else:
         qs = _affected_qs(staff.pk, None, now)
     rows = qs.prefetch_related("items").order_by("scheduled_start", "id")
-    names = accounts.full_names([a.customer_id for a in rows])
+    names = accounts.full_names([a.customer_id for a in rows if a.customer_id is not None])
     return [
         ImpactItem(
             appointment_id=str(a.public_id),
             status=a.status,
             start=a.scheduled_start,
             end=a.scheduled_end,
-            customer_name=names.get(a.customer_id, ""),
+            customer_name=names.get(a.customer_id, "") if a.customer_id else a.walk_in_name,
             services=[i.name for i in a.items.all()],
         )
         for a in rows

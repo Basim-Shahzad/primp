@@ -168,3 +168,63 @@ def delete_closure(owner_id: int, closure_id: int) -> None:
         business_id = closure.business_id
         closure.delete()
     touch(business_id)
+
+
+# ---------------------------------------------------------------- blocks (part-day, staff)
+
+BLOCK_KINDS = {k.value for k in ClosureKind}
+MAX_BLOCK_DAYS = 366
+
+
+def create_block(
+    owner_id: int,
+    business_ref: str,
+    *,
+    starts_at: datetime,
+    ends_at: datetime,
+    kind: str,
+    reason: str,
+    staff_id: int | None,
+) -> Closure:
+    """Block part of a day or several days for the business or one staff member."""
+    if kind not in BLOCK_KINDS:
+        raise _bad("kind", _("Unknown block kind."))
+    if ends_at <= starts_at:
+        raise _bad("ends_at", _("The end must be after the start."))
+    if ends_at - starts_at > timedelta(days=MAX_BLOCK_DAYS):
+        raise _bad("ends_at", _("A block can last at most 366 days."))
+    with transaction.atomic():
+        business = selectors.owned_business(owner_id, business_ref, lock=True)
+        if staff_id is not None and selectors.staff_in_business(business.pk, staff_id) is None:
+            raise _bad("staff_id", _("Unknown staff member."))
+        if business.closures.count() >= MAX_CLOSURES:
+            raise conflict("too_many_closures", _("Too many blocks. Remove old ones first."))
+        block = Closure.objects.create(
+            business=business,
+            staff_id=staff_id,
+            starts_at=starts_at,
+            ends_at=ends_at,
+            kind=kind,
+            reason=reason.strip(),
+        )
+    touch(business.pk)
+    return block
+
+
+def list_blocks(
+    owner_id: int,
+    business_ref: str,
+    *,
+    after: datetime | None = None,
+    before: datetime | None = None,
+    staff_id: int | None = None,
+) -> list[Closure]:
+    business = selectors.owned_business(owner_id, business_ref)
+    qs = business.closures.all()
+    if after is not None:
+        qs = qs.filter(ends_at__gt=after)
+    if before is not None:
+        qs = qs.filter(starts_at__lt=before)
+    if staff_id is not None:
+        qs = qs.filter(staff_id=staff_id)
+    return list(qs[:MAX_CLOSURES])

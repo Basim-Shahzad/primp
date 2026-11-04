@@ -347,6 +347,35 @@ BLOCKED = "blocked"
 CONFLICT = "conflict"
 
 
+def hours_problem(
+    windows_all: dict[int, dict[int | None, list[tuple[time, time]]]],
+    tz: ZoneInfo,
+    start: datetime,
+    end: datetime,
+    resource: int | None,
+) -> bool:
+    """True when [start, end) is not inside one working shift of the resource (pure)."""
+    local_start, local_end = start.astimezone(tz), end.astimezone(tz)
+    windows = windows_all.get(local_start.weekday(), {})
+    shifts = _resource_windows(windows, resource) if resource is not None else windows.get(None, [])
+    fits = local_start.date() == local_end.date() and any(
+        opens <= local_start.time() and local_end.time() <= closes for opens, closes in shifts
+    )
+    return not fits
+
+
+def block_problem(
+    closures: list[tuple[int | None, datetime, datetime]],
+    start: datetime,
+    end: datetime,
+    resource: int | None,
+) -> bool:
+    return any(
+        (c_staff is None or c_staff == resource) and c_start < end and c_end > start
+        for c_staff, c_start, c_end in closures
+    )
+
+
 def window_problems(
     config: biz.BookingConfig,
     start: datetime,
@@ -363,22 +392,15 @@ def window_problems(
     only looks at working hours and blocks (used to find schedule conflicts).
     """
     tz = ZoneInfo(config.timezone)
-    local_start, local_end = start.astimezone(tz), end.astimezone(tz)
     problems: list[str] = []
     resource = staff_id if config.staff_level_booking else None
 
-    windows = biz.opening_windows(config.id, local_start.weekday())
-    shifts = _resource_windows(windows, resource) if resource is not None else windows.get(None, [])
-    fits = local_start.date() == local_end.date() and any(
-        opens <= local_start.time() and local_end.time() <= closes for opens, closes in shifts
-    )
-    if not fits:
+    local_day = start.astimezone(tz).weekday()
+    windows_all = {local_day: biz.opening_windows(config.id, local_day)}
+    if hours_problem(windows_all, tz, start, end, resource):
         problems.append(OUTSIDE_HOURS)
-
-    for c_staff, _c_start, _c_end in biz.closures_overlapping(config.id, start, end):
-        if c_staff is None or c_staff == resource:
-            problems.append(BLOCKED)
-            break
+    if block_problem(biz.closures_overlapping(config.id, start, end), start, end, resource):
+        problems.append(BLOCKED)
 
     if check_busy:
         buffer = timedelta(minutes=config.buffer_minutes)

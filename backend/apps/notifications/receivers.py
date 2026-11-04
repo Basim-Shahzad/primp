@@ -30,23 +30,31 @@ def _safe(handler: Callable[..., None]) -> Callable[..., None]:
     return wrapper
 
 
+def _to_customer(brief: bookings.AppointmentBrief, key: str) -> None:
+    """Notify the customer; walk-in bookings without an account have nobody to tell."""
+    if brief.customer_id is not None:
+        services.notify(brief.customer_id, key, brief.payload())
+
+
 def _brief(appointment_id: int) -> bookings.AppointmentBrief | None:
     return bookings.appointment_brief(appointment_id)
 
 
-def on_created(appointment_id: int, **_: Any) -> None:
+def on_created(appointment_id: int, source: str = "online", **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief is None:
         return
     if brief.status == "pending":
-        services.notify(brief.customer_id, "booking_received", brief.payload())
+        _to_customer(brief, "booking_received")
+    if source == "manual":
+        return  # the owner entered it themselves; no alert needed
     services.notify(brief.owner_id, "provider_booking_created", brief.payload(), include_sms=False)
 
 
 def on_confirmed(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        services.notify(brief.customer_id, "booking_confirmed", brief.payload())
+        _to_customer(brief, "booking_confirmed")
 
 
 def on_cancelled(appointment_id: int, cancelled_by: str = "", **_: Any) -> None:
@@ -58,13 +66,13 @@ def on_cancelled(appointment_id: int, cancelled_by: str = "", **_: Any) -> None:
             brief.owner_id, "provider_booking_cancelled", brief.payload(), include_sms=False
         )
     else:
-        services.notify(brief.customer_id, "booking_cancelled", brief.payload())
+        _to_customer(brief, "booking_cancelled")
 
 
 def on_rescheduled(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        services.notify(brief.customer_id, "booking_rescheduled", brief.payload())
+        _to_customer(brief, "booking_rescheduled")
         services.notify(
             brief.owner_id, "provider_booking_rescheduled", brief.payload(), include_sms=False
         )
@@ -81,19 +89,19 @@ def on_reschedule_requested(appointment_id: int, **_: Any) -> None:
 def on_reschedule_declined(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        services.notify(brief.customer_id, "booking_reschedule_declined", brief.payload())
+        _to_customer(brief, "booking_reschedule_declined")
 
 
 def on_reassigned(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        services.notify(brief.customer_id, "booking_reassigned", brief.payload())
+        _to_customer(brief, "booking_reassigned")
 
 
 def on_completed(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        services.notify(brief.customer_id, "review_prompt", brief.payload())
+        _to_customer(brief, "review_prompt")
 
 
 def connect() -> None:

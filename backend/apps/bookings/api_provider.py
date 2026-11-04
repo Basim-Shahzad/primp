@@ -1,23 +1,32 @@
 """Provider-side booking endpoints (staff impact workflow now; dashboard actions follow)."""
 
 import uuid
+from datetime import date
 from typing import Literal
 
 from django.http import HttpRequest
-from ninja import Router
+from ninja import Field, Query, Router, Schema, Status
 
 from apps.accounts.auth import jwt_auth
+from apps.accounts.phone import normalize_pk_mobile
 from apps.accounts.roles import Role
 from apps.core.errors import validation_error
 from apps.core.permissions import require_role
 
-from . import staff_impact
+from . import provider_schedule, provider_selectors, staff_impact
 from .provider_schemas import (
     ApplyOut,
+    BlockOut,
+    ConflictOut,
+    DayHoursOut,
     DeactivateIn,
     ImpactItemOut,
     ImpactOut,
+    ManualBookingIn,
+    ProviderAppointmentOut,
     ResolutionIn,
+    ScheduleOut,
+    ShiftOut,
     StaffServicesIn,
 )
 
@@ -78,3 +87,83 @@ def put_staff_services(request: HttpRequest, staff_id: int, payload: StaffServic
         user.pk, staff_id, payload.service_ids, to_resolutions(payload.resolutions)
     )
     return ApplyOut(reassigned=result.reassigned, cancelled=result.cancelled)
+
+
+# ---- schedule: manual bookings, conflicts, calendar ----
+
+
+@provider_router.post(
+    "/businesses/{business_id}/manual-bookings", response={201: ProviderAppointmentOut}
+)
+def create_manual_booking(
+    request: HttpRequest, business_id: uuid.UUID, payload: ManualBookingIn
+) -> Status[ProviderAppointmentOut]:
+    user = owner_only(request)
+    try:
+        phone = normalize_pk_mobile(payload.customer_phone)
+    except ValueError as exc:
+        raise validation_error({"customer_phone": [str(exc)]}) from exc
+    appointment = provider_schedule.create_manual_booking(
+        user.pk,
+        str(business_id),
+        customer_name=payload.customer_name,
+        customer_phone=phone,
+        service_ids=payload.service_ids,
+        staff_id=payload.staff_id,
+        start=payload.start,
+    )
+    fresh = provider_selectors.base_queryset().get(pk=appointment.pk)
+    return Status(201, provider_selectors.appointment_outs([fresh])[0])
+
+
+@provider_router.get("/businesses/{business_id}/conflicts", response=list[ConflictOut])
+def list_conflicts(request: HttpRequest, business_id: uuid.UUID) -> list[ConflictOut]:
+    user = owner_only(request)
+    found = provider_schedule.conflicts(user.pk, str(business_id))
+    outs = provider_selectors.appointment_outs([c.appointment for c in found])
+    return [
+        ConflictOut(appointment=out, reasons=c.reasons, actions=["reschedule", "cancel"])
+        for out, c in zip(outs, found, strict=True)
+    ]
+
+
+def _days(week: list) -> list[DayHoursOut]:  # type: ignore[type-arg]
+    return [
+        DayHoursOut(
+            weekday=d.weekday,
+            shifts=[
+                ShiftOut(opens_at=o.strftime("%H:%M"), closes_at=c.strftime("%H:%M"))
+                for o, c in d.shifts
+            ],
+        )
+        for d in week
+    ]
+
+
+class ScheduleQuery(Schema):
+    from_date: date = Field(alias="from")
+    to_date: date = Field(alias="to")
+    staff_id: int | None = None
+
+
+@provider_router.get("/businesses/{business_id}/schedule", response=ScheduleOut)
+def get_schedule(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[ScheduleQuery]
+) -> ScheduleOut:
+    user = owner_only(request)
+    sched = provider_schedule.schedule(
+        user.pk, str(business_id), params.from_date, params.to_date, params.staff_id
+    )
+    return ScheduleOut(
+        timezone=sched.timezone,
+        from_date=sched.from_date,
+        to_date=sched.to_date,
+        hours=_days(sched.hours),
+        staff_hours={str(k): _days(v) for k, v in sched.staff_hours.items()},
+        blocks=[
+            BlockOut(id=i, kind=k, staff_id=sid, starts_at=a, ends_at=b, reason=r)
+            for i, k, sid, a, b, r in sched.blocks
+        ],
+        appointments=provider_selectors.appointment_outs(sched.appointments),
+        holds_count=sched.holds_count,
+    )

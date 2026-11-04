@@ -373,6 +373,100 @@
         "title": "AvailabilityOut",
         "type": "object"
       },
+      "BlockIn": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "kind": {
+            "default": "block",
+            "enum": [
+              "block",
+              "leave",
+              "holiday"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Reason",
+            "type": "string"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "BlockIn",
+        "type": "object"
+      },
+      "BlockOut": {
+        "properties": {
+          "ends_at": {
+            "format": "date-time",
+            "title": "Ends At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "starts_at": {
+            "format": "date-time",
+            "title": "Starts At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "staff_id",
+          "starts_at",
+          "ends_at",
+          "reason"
+        ],
+        "title": "BlockOut",
+        "type": "object"
+      },
       "BookIn": {
         "properties": {
           "hold_token": {
@@ -943,6 +1037,34 @@
         "title": "ClosureOut",
         "type": "object"
       },
+      "ConflictOut": {
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "appointment": {
+            "$ref": "#/components/schemas/ProviderAppointmentOut"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "appointment",
+          "reasons",
+          "actions"
+        ],
+        "title": "ConflictOut",
+        "type": "object"
+      },
       "ContactOut": {
         "properties": {
           "address": {
@@ -1472,6 +1594,55 @@
           "password"
         ],
         "title": "LoginIn",
+        "type": "object"
+      },
+      "ManualBookingIn": {
+        "properties": {
+          "customer_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Customer Name",
+            "type": "string"
+          },
+          "customer_phone": {
+            "maxLength": 25,
+            "minLength": 1,
+            "title": "Customer Phone",
+            "type": "string"
+          },
+          "service_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Service Ids",
+            "type": "array"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer_name",
+          "customer_phone",
+          "service_ids",
+          "start"
+        ],
+        "title": "ManualBookingIn",
         "type": "object"
       },
       "MessageOut": {
@@ -2157,6 +2328,180 @@
         "title": "ProfilePatchIn",
         "type": "object"
       },
+      "ProviderAppointmentOut": {
+        "properties": {
+          "business_note": {
+            "title": "Business Note",
+            "type": "string"
+          },
+          "cancellation_reason": {
+            "title": "Cancellation Reason",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/ProviderCustomerOut"
+          },
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "payment_method": {
+            "title": "Payment Method",
+            "type": "string"
+          },
+          "payment_status": {
+            "title": "Payment Status",
+            "type": "string"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderServiceOut"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "staff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProviderStaffOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "total_price": {
+            "title": "Total Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "source",
+          "start",
+          "end",
+          "staff",
+          "services",
+          "total_price",
+          "payment_method",
+          "payment_status",
+          "customer",
+          "business_note",
+          "cancellation_reason",
+          "created_at"
+        ],
+        "title": "ProviderAppointmentOut",
+        "type": "object"
+      },
+      "ProviderCustomerOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "phone"
+        ],
+        "title": "ProviderCustomerOut",
+        "type": "object"
+      },
+      "ProviderServiceOut": {
+        "properties": {
+          "duration_minutes": {
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "duration_minutes"
+        ],
+        "title": "ProviderServiceOut",
+        "type": "object"
+      },
+      "ProviderStaffOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ProviderStaffOut",
+        "type": "object"
+      },
       "RatingOut": {
         "properties": {
           "avg": {
@@ -2681,6 +3026,102 @@
           "next_cursor"
         ],
         "title": "ReviewPageOut",
+        "type": "object"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "appointments": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderAppointmentOut"
+            },
+            "title": "Appointments",
+            "type": "array"
+          },
+          "blocks": {
+            "items": {
+              "$ref": "#/components/schemas/BlockOut"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "holds_count": {
+            "title": "Holds Count",
+            "type": "integer"
+          },
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/DayHoursOut"
+            },
+            "title": "Hours",
+            "type": "array"
+          },
+          "staff_hours": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/DayHoursOut"
+              },
+              "type": "array"
+            },
+            "title": "Staff Hours",
+            "type": "object"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone",
+          "from_date",
+          "to_date",
+          "hours",
+          "staff_hours",
+          "blocks",
+          "appointments",
+          "holds_count"
+        ],
+        "title": "ScheduleOut",
+        "type": "object"
+      },
+      "ScheduleQuery": {
+        "properties": {
+          "from": {
+            "format": "date",
+            "title": "From",
+            "type": "string"
+          },
+          "staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Id"
+          },
+          "to": {
+            "format": "date",
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "title": "ScheduleQuery",
         "type": "object"
       },
       "SearchItemOut": {
@@ -5186,6 +5627,36 @@
         ]
       }
     },
+    "/api/v1/provider/blocks/{block_id}": {
+      "delete": {
+        "operationId": "apps_businesses_api_provider_remove_block",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "title": "Block Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Remove Block",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/businesses": {
       "get": {
         "operationId": "apps_businesses_api_provider_list_businesses",
@@ -5331,6 +5802,144 @@
           }
         ],
         "summary": "Patch Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/blocks": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_blocks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "in": "query",
+            "name": "staff_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Staff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Blocks",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_create_block",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Block",
         "tags": [
           "provider"
         ]
@@ -5503,6 +6112,48 @@
           }
         ],
         "summary": "Create Closure",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/conflicts": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_list_conflicts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConflictOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Conflicts",
         "tags": [
           "provider"
         ]
@@ -5790,6 +6441,54 @@
           }
         ],
         "summary": "Upload Logo",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/manual-bookings": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_create_manual_booking",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualBookingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderAppointmentOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Manual Booking",
         "tags": [
           "provider"
         ]
@@ -6177,6 +6876,80 @@
           }
         ],
         "summary": "Preview Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/schedule": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_get_schedule",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "staff_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Staff Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Schedule",
         "tags": [
           "provider"
         ]
