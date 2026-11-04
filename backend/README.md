@@ -2,7 +2,7 @@
 
 Django 5.2 + Django Ninja API for **Primp**, a beauty and grooming booking marketplace for Pakistan.
 This service implements the customer side (PRD 6.1), the provider side (PRD 6.2) and the shared foundation
-the admin plan (6.3) builds on. Run every command from `backend/`.
+the admin plan (6.3) builds on. Run every command from `backend/`. The admin panel backend is described in `docs/ADMIN.md`.
 
 ## Architecture
 

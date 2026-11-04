@@ -67,3 +67,17 @@ Mention that the API lives in `backend/` and link to `backend/README.md`.
   change to a listing (profile, photos, services, hours, closures, settings, staff, verification).
 - **Terms**: bump `PROVIDER_TERMS_VERSION` whenever the provider agreement or commission terms change; owners
   must accept the current version to submit.
+
+## Plan 6.3 additions
+
+- **Beat schedule**: `ticket-flag-sweep` and `banner-counter-flush` join the schedule; a running `celery beat`
+  is required for flagged-review tickets and banner impression/click counts.
+- **First super admin**: run `manage.py create_super_admin` once per environment (see `docs/ADMIN.md`).
+- **Django admin exposure**: set `ADMIN_URL_PATH` to a non-guessable value and `ADMIN_ALLOWED_IPS` to the
+  office/VPN addresses in production; keep the admin path off public CDN caching. If a reverse proxy
+  terminates traffic, set `TRUSTED_PROXY_COUNT` so the allow-list sees the real client address.
+- **Frontend**: the admin panel consumes `/api/v1/admin/*` (see `openapi.json`, tag `admin`); public
+  `/categories` and the banner feeds are cached server side and invalidate on admin change.
+- **Platform configuration**: values set through `/admin/config` override the Django settings defaults
+  immediately (Redis cache, 5 minutes at worst when Redis is unreachable); keep Redis reachable from all
+  API and worker processes.
