@@ -24,6 +24,7 @@ class NotificationTemplate(models.Model):
     subject = models.CharField(max_length=200, blank=True)
     body = models.TextField(help_text="Use {placeholders}")
     is_active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         constraints = [

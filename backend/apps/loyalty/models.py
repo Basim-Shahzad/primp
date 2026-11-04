@@ -29,6 +29,7 @@ class PointRule(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     valid_from = models.DateTimeField(null=True, blank=True)
     valid_to = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         constraints = [

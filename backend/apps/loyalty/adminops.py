@@ -71,3 +71,65 @@ def total_adjusted(customer_id: int) -> int:
         t=Sum("delta")
     )["t"]
     return int(value or 0)
+
+
+# ---- point rule editing -----------------------------------------------------------------
+
+from django.db import transaction  # noqa: E402
+
+from .models import PointRule  # noqa: E402
+
+
+class StaleRule(Exception):
+    pass
+
+
+class RuleError(Exception):
+    def __init__(self, field: str, message: str) -> None:
+        super().__init__(message)
+        self.field = field
+        self.message = message
+
+
+RULE_FIELDS = ("points", "unit_amount", "description", "is_active", "valid_from", "valid_to")
+
+
+def rule_snapshot(r: PointRule) -> dict[str, Any]:
+    return {
+        "id": r.pk,
+        "action": r.action,
+        "kind": r.kind,
+        "points": r.points,
+        "unit_amount": r.unit_amount,
+        "description": r.description,
+        "is_active": r.is_active,
+        "valid_from": r.valid_from.isoformat() if r.valid_from else None,
+        "valid_to": r.valid_to.isoformat() if r.valid_to else None,
+        "version": r.version,
+    }
+
+
+def list_rules() -> list[PointRule]:
+    return list(PointRule.objects.order_by("action", "id"))
+
+
+def update_rule(
+    rule_id: int, version: int, changes: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    with transaction.atomic():
+        r = PointRule.objects.select_for_update().filter(pk=rule_id).first()
+        if r is None:
+            return None
+        if r.version != version:
+            raise StaleRule
+        before = rule_snapshot(r)
+        for field in RULE_FIELDS:
+            if field in changes:
+                setattr(r, field, changes[field])
+        if r.kind == "per_amount" and not r.unit_amount:
+            raise RuleError("unit_amount", "A per-amount rule needs a unit amount.")
+        if r.valid_from and r.valid_to and r.valid_to <= r.valid_from:
+            raise RuleError("valid_to", "The end must be after the start.")
+        r.version += 1
+        r.save(update_fields=[*RULE_FIELDS, "version", "updated_at"])
+        return before, rule_snapshot(r)
