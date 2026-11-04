@@ -1,11 +1,12 @@
 """User management for admins: suspend/reactivate, sessions, deletion requests, admin accounts."""
 
+from typing import Any
+
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts import adminops as accounts
-from apps.accounts.models import User
 from apps.accounts.roles import Role
 from apps.bookings import adminops as bookings
 from apps.businesses import adminops as businesses
@@ -18,17 +19,17 @@ from ..models import SuspensionRecord
 from ..permissions import AdminActor
 
 
-def _is_admin(user: User) -> bool:
+def _is_admin(user: Any) -> bool:
     return user.role in (Role.ADMIN, Role.SUPER_ADMIN)
 
 
-def _guard_role(actor: AdminActor, target: User) -> None:
+def _guard_role(actor: AdminActor, target: Any) -> None:
     """Only a super admin may act on an admin account."""
     if _is_admin(target) and actor.user.role != Role.SUPER_ADMIN:
         raise forbidden()
 
 
-def _guard_admin_target(actor: AdminActor, target: User) -> None:
+def _guard_admin_target(actor: AdminActor, target: Any) -> None:
     """Role guard, then nobody acts on themselves."""
     _guard_role(actor, target)
     if target.pk == actor.id:
@@ -43,7 +44,7 @@ def current_suspension(user_id: int) -> SuspensionRecord | None:
     return _open_suspension(user_id)
 
 
-def suspend(actor: AdminActor, user_ref: str, reason: str) -> User:
+def suspend(actor: AdminActor, user_ref: str, reason: str) -> Any:
     actor.require("users.suspend")
     with transaction.atomic():
         user = accounts.get_user(user_ref, lock=True)
@@ -80,7 +81,7 @@ def suspend(actor: AdminActor, user_ref: str, reason: str) -> User:
     return user
 
 
-def _notify_suspension(user: User) -> None:
+def _notify_suspension(user: Any) -> None:
     """Customers keep their bookings; the other side is told (ADR-021)."""
     for brief in bookings.future_active_for_customer(user.pk):
         notifications.notify(
@@ -91,7 +92,7 @@ def _notify_suspension(user: User) -> None:
             notifications.notify(brief.customer_id, "business_suspended_notice", brief.payload())
 
 
-def reactivate(actor: AdminActor, user_ref: str, reason: str) -> User:
+def reactivate(actor: AdminActor, user_ref: str, reason: str) -> Any:
     actor.require("users.suspend")
     with transaction.atomic():
         user = accounts.get_user(user_ref, lock=True)
@@ -194,7 +195,7 @@ def process_deletion(actor: AdminActor, request_id: int) -> None:
 # ---------------------------------------------------------------- admin accounts
 
 
-def create_admin(actor: AdminActor, *, email: str, name: str, group: str) -> User:
+def create_admin(actor: AdminActor, *, email: str, name: str, group: str) -> Any:
     actor.require("admins.manage")
     with transaction.atomic():
         user = accounts.create_admin(email=email, name=name, group=group)
@@ -211,7 +212,7 @@ def create_admin(actor: AdminActor, *, email: str, name: str, group: str) -> Use
     return user
 
 
-def set_admin_group(actor: AdminActor, user_ref: str, group: str) -> User:
+def set_admin_group(actor: AdminActor, user_ref: str, group: str) -> Any:
     actor.require("admins.manage")
     with transaction.atomic():
         user = accounts.get_user(user_ref, lock=True)
