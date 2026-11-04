@@ -1,8 +1,8 @@
 # Primp backend
 
 Django 5.2 + Django Ninja API for **Primp**, a beauty and grooming booking marketplace for Pakistan.
-This service implements the customer side (PRD 6.1) and the shared foundation that the provider (6.2)
-and admin (6.3) plans build on. Run every command from `backend/`.
+This service implements the customer side (PRD 6.1), the provider side (PRD 6.2) and the shared foundation
+the admin plan (6.3) builds on. Run every command from `backend/`.
 
 ## Architecture
 
@@ -13,11 +13,13 @@ apps/
   accounts/        User, JWT + rotating refresh tokens, OTP, Google, profile, wishlist
   geo/             City, Area
   catalog/         two-level category taxonomy
-  businesses/      Business, services, staff, hours, closures; search; public business page
-  bookings/        availability engine, Redis holds, appointments, status machine, history
+  businesses/      Business, services, staff, hours, closures; onboarding, documents, verification;
+                   search; public business page
+  bookings/        availability engine, Redis holds, appointments, status machine, history;
+                   owner dashboard, schedule, manual bookings, staff impact, analytics
   reviews/         reviews, flags, rating aggregates, moderation service
   loyalty/         point rules, append-only ledger, account summary, reconciliation
-  notifications/   templates, dispatcher, SMS/email adapters, reminders
+  notifications/   templates, dispatcher, SMS/email adapters, reminders, owner preferences and feed
   payments/        gateway interface, fake gateway, signed idempotent webhooks
 docs/              progress/, decisions/ (ADRs), OUTSIDE_SCOPE.md, FOLLOW_UPS.md
 tests/             cross-cutting tests (OpenAPI freshness, rate limits, PII-in-logs)
@@ -44,7 +46,7 @@ docker compose up --build
 ```
 
 This starts PostGIS, Redis, Mailpit, MinIO, the API (migrates and loads `seed_demo` data first), a Celery
-worker and Celery beat. Check `http://localhost:8000/readyz` and the docs at `/api/v1/docs`.
+worker and Celery beat (private verification documents live in the `private_media` volume). Check `http://localhost:8000/readyz` and the docs at `/api/v1/docs`.
 
 ## Setup without Docker
 
@@ -156,6 +158,27 @@ All routes live under `/api/v1/` (see `openapi.json` or `/api/v1/docs`):
 - **search/businesses**, **businesses/{slug}**, `{id}/availability`, `{id}/reviews`
 - **appointments** `hold`, create, `{id}` detail/policy/cancel/reschedule/rebook-draft/review
 - **reviews** edit and flag; **payments/webhooks/{provider}**; `/healthz`, `/readyz`, `/metrics`
+
+### Provider API (`/api/v1/provider/...`, tag `provider`, role `business_owner`)
+
+Every endpoint takes the business as a path id and answers **404** for another owner's objects. Ownership
+is enforced in the services; `tests/test_provider_security.py` calls every provider route as a different
+owner and fails when a new route is not classified.
+
+- **Onboarding**: `auth/register/business-owner`, `users/me/become-owner`, `provider/businesses`,
+  `.../onboarding[/{step}]`, `.../submit`, `.../documents` (private storage, signed links), `starter-menu`
+- **Profile**: `businesses/{id}` (+ `/preview`, `/photos`, `/logo`, `/services`, `/hours`, `/closures`,
+  `/booking-settings`), `services/{id}`, `closures/{id}`
+- **Staff**: `businesses/{id}/staff`, `staff/{id}` (+ `/photo`, `/hours`, `/services`, `/impact`, `/deactivate`)
+- **Schedule**: `businesses/{id}/blocks`, `/manual-bookings`, `/conflicts`, `/schedule`
+- **Bookings**: `businesses/{id}/appointments` (+ `/today`, `/needs-action`, `/changes`, `/export.csv`),
+  `appointments/{id}` and its actions (`accept, decline, cancel, reschedule, complete, no-show, note,
+  reschedule-request/accept|decline`)
+- **Analytics**: `businesses/{id}/analytics/summary|top-services|timeseries`
+- **Notifications**: `notification-preferences`, `notifications`, `notifications/read`
+
+Celery beat adds `pending-escalation` (every 5 min) and `daily-stats-rebuild` (02:10 Asia/Karachi);
+`manage.py seed_starter_menu` loads the editable starter service templates.
 
 `/metrics` (Prometheus) should be reachable only from the internal network; see `docs/OUTSIDE_SCOPE.md`.
 

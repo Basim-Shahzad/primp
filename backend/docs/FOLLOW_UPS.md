@@ -14,14 +14,33 @@
 - **Object storage:** S3/R2/MinIO is configured through `AWS_*` variables but only the in-memory and
   filesystem backends were exercised.
 
-## For Plans 6.2 and 6.3
+## Handed over to Plan 6.3 (admin)
 
-- Provider endpoints should call the service functions that already exist: `bookings.services.confirm`,
-  `complete`, `mark_no_show`, `cancel_by_business`, `accept_reschedule`, `decline_reschedule`.
+- **Verification endpoints** only need to call `businesses.verification.mark_verified`,
+  `revoke_verification`, `request_more_info` and `reject` (they audit, notify, refresh caches and emit
+  `business_verification_changed`). Consumers of `business_submitted` build the review queue.
+- **Pending name/category changes** of verified businesses are stored in `Business.pending_review_changes`
+  and announced by `business_change_review_requested`. There is no function yet to approve or reject them
+  (apply to `name`/`category`, clear the field, refresh caches): 6.3 must add it.
+- **Documents**: admins review `BusinessDocument` rows (status `accepted`/`rejected`, `reviewer_note`) and
+  open files with `businesses.files.signed_url(document.pk)` (private storage, 5-minute links).
+- **Failed notifications**: `notifications.feed.failed_for_admin()` lists rows with `admin_flagged`.
+- **Templates** are data (`NotificationTemplate`); an admin editor is a 6.3 task.
 - Admin endpoints should call `reviews.services.moderate_review` (hide/remove/restore) and turn
   `ReviewOutbox` rows (`review_flagged`) into support tickets.
 - Account deletion requests are only recorded (`AccountDeletionRequest`); processing belongs to 6.3.
-- `ReviewReply` exists but has no endpoint yet (6.2).
+- `ReviewReply` exists but has no endpoint yet (not part of Plan 6.2).
+
+## Provider side: known limits
+
+- No staff logins, real-time dashboard push, CRM, promotions or multi-branch UI (Phase 2).
+- Revoking a verification removes the badge only; delisting a business is a separate admin decision.
+- Walk-in bookings without an account have no way to be notified (no contact beyond the phone number).
+- Analytics are bucketed by appointment start date; there is no discount concept yet, so revenue is the
+  sum of `price_at_booking` of completed bookings.
+- Private verification documents were verified on the in-memory and filesystem backends only; the S3
+  variant (`AWS_PRIVATE_BUCKET_NAME`) is configured but not exercised, and the new `private_media` Docker
+  volume could not be run in this sandbox (no Docker daemon).
 
 ## Phase 2 / nice to have
 

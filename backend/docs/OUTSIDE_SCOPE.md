@@ -52,3 +52,18 @@ Add `backend/media/`, `backend/media_test/`, `backend/staticfiles/`, `backend/.c
 ## Root README
 
 Mention that the API lives in `backend/` and link to `backend/README.md`.
+
+## Plan 6.2 additions
+
+- **Beat schedule** is defined in `config/settings/base.py` (`pending-escalation` every 5 minutes,
+  `daily-stats-rebuild` nightly), so a running `celery beat` is required for escalation and fresh analytics.
+  Run `manage.py seed_starter_menu` once per environment after migrating.
+- **Private document bucket**: create a bucket that is *not* public, set `AWS_PRIVATE_BUCKET_NAME` (and the
+  same `AWS_*` credentials), and give the API role read/write on it. With the filesystem backend mount a
+  persistent volume at `PRIVATE_MEDIA_ROOT` (the compose file does this) and never serve that folder.
+- **Reverse proxy**: `/api/v1/files/documents/*` returns private files and must keep
+  `Cache-Control: private, no-store`; do not cache it at the CDN.
+- **Frontend**: the revalidation webhook (`FRONTEND_REVALIDATE_URL`) is now also called after every provider
+  change to a listing (profile, photos, services, hours, closures, settings, staff, verification).
+- **Terms**: bump `PROVIDER_TERMS_VERSION` whenever the provider agreement or commission terms change; owners
+  must accept the current version to submit.
