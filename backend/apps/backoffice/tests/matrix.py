@@ -72,6 +72,28 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         REASON,
         "",
     ),
+    ("get", "/admin/categories"): ("taxonomy.manage", None, ""),
+    ("post", "/admin/categories"): ("taxonomy.manage", {"name": "Cat"}, ""),
+    ("post", "/admin/categories/reorder"): (
+        "taxonomy.manage",
+        {"parent_id": None, "ids": []},
+        "",
+    ),
+    ("patch", "/admin/categories/{category_id}"): (
+        "taxonomy.manage",
+        {"version": 1, "name": "X"},
+        "",
+    ),
+    ("post", "/admin/categories/{category_id}/deactivate"): (
+        "taxonomy.manage",
+        {"version": 1},
+        "",
+    ),
+    ("post", "/admin/categories/{category_id}/activate"): (
+        "taxonomy.manage",
+        {"version": 1},
+        "",
+    ),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}

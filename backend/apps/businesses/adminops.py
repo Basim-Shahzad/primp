@@ -177,3 +177,22 @@ request_more_info = verification_service.request_more_info
 revoke_verification = verification_service.revoke_verification
 approve_pending_changes = verification_service.approve_pending_changes
 reject_pending_changes = verification_service.reject_pending_changes
+
+
+def category_usage() -> dict[int, tuple[int, int]]:
+    """{category_id: (services using it, businesses in it)} for the taxonomy screen."""
+    from django.db.models import Count
+
+    from .models import Service
+
+    usage: dict[int, list[int]] = {}
+    for cid, n in (
+        Service.objects.exclude(category__isnull=True)
+        .values_list("category_id")
+        .annotate(n=Count("id"))
+        .order_by()
+    ):
+        usage.setdefault(cid, [0, 0])[0] = n
+    for cid, n in Business.objects.values_list("category_id").annotate(n=Count("id")).order_by():
+        usage.setdefault(cid, [0, 0])[1] = n
+    return {k: (v[0], v[1]) for k, v in usage.items()}
