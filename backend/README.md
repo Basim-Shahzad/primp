@@ -107,6 +107,8 @@ Set in the environment or `.env`. Production (`config.settings.prod`) refuses to
 | `JWT_SIGNING_KEY` | insecure dev key | HS256 signing key (required in prod) |
 | `ACCESS_TOKEN_MINUTES` | `15` | access token lifetime |
 | `ADMIN_ACCESS_TOKEN_MINUTES` | `5` | access token lifetime for admin roles |
+| `ADMIN_URL_PATH` | `admin/` | Django admin URL prefix (see `docs/ADMIN.md`) |
+| `ADMIN_ALLOWED_IPS` | empty | comma-separated IPs allowed to reach the Django admin |
 | `REFRESH_TOKEN_DAYS` | `30` | refresh token lifetime |
 | `ADMIN_REFRESH_TOKEN_HOURS` | `8` | refresh token lifetime for admin roles |
 | `REFRESH_COOKIE_NAME` | `primp_refresh` | refresh cookie name |
