@@ -408,6 +408,167 @@
         "title": "BookingRulesOut",
         "type": "object"
       },
+      "BookingSettingsIn": {
+        "properties": {
+          "buffer_minutes": {
+            "anyOf": [
+              {
+                "maximum": 60,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buffer Minutes"
+          },
+          "cancellation_notice_hours": {
+            "anyOf": [
+              {
+                "maximum": 72,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Notice Hours"
+          },
+          "confirm_mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "instant",
+                  "manual"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirm Mode"
+          },
+          "lead_time_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lead Time Minutes"
+          },
+          "max_advance_days": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Advance Days"
+          },
+          "parallel_capacity": {
+            "anyOf": [
+              {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parallel Capacity"
+          },
+          "slot_interval_minutes": {
+            "anyOf": [
+              {
+                "enum": [
+                  15,
+                  30,
+                  60
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slot Interval Minutes"
+          },
+          "staff_level_booking": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Level Booking"
+          }
+        },
+        "title": "BookingSettingsIn",
+        "type": "object"
+      },
+      "BookingSettingsOut": {
+        "properties": {
+          "buffer_minutes": {
+            "title": "Buffer Minutes",
+            "type": "integer"
+          },
+          "cancellation_notice_hours": {
+            "title": "Cancellation Notice Hours",
+            "type": "integer"
+          },
+          "confirm_mode": {
+            "title": "Confirm Mode",
+            "type": "string"
+          },
+          "lead_time_minutes": {
+            "title": "Lead Time Minutes",
+            "type": "integer"
+          },
+          "max_advance_days": {
+            "title": "Max Advance Days",
+            "type": "integer"
+          },
+          "parallel_capacity": {
+            "title": "Parallel Capacity",
+            "type": "integer"
+          },
+          "slot_interval_minutes": {
+            "title": "Slot Interval Minutes",
+            "type": "integer"
+          },
+          "staff_level_booking": {
+            "title": "Staff Level Booking",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm_mode",
+          "cancellation_notice_hours",
+          "lead_time_minutes",
+          "max_advance_days",
+          "slot_interval_minutes",
+          "buffer_minutes",
+          "staff_level_booking",
+          "parallel_capacity"
+        ],
+        "title": "BookingSettingsOut",
+        "type": "object"
+      },
       "BusinessCreateIn": {
         "properties": {
           "category_id": {
@@ -703,6 +864,32 @@
         "title": "CityRefOut",
         "type": "object"
       },
+      "ClosureIn": {
+        "properties": {
+          "ends_on": {
+            "format": "date",
+            "title": "Ends On",
+            "type": "string"
+          },
+          "message": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Message",
+            "type": "string"
+          },
+          "starts_on": {
+            "format": "date",
+            "title": "Starts On",
+            "type": "string"
+          }
+        },
+        "required": [
+          "starts_on",
+          "ends_on"
+        ],
+        "title": "ClosureIn",
+        "type": "object"
+      },
       "ClosureOut": {
         "properties": {
           "ends_at": {
@@ -710,12 +897,16 @@
             "title": "Ends At",
             "type": "string"
           },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
           "kind": {
             "title": "Kind",
             "type": "string"
           },
-          "reason": {
-            "title": "Reason",
+          "message": {
+            "title": "Message",
             "type": "string"
           },
           "starts_at": {
@@ -725,10 +916,11 @@
           }
         },
         "required": [
+          "id",
+          "kind",
           "starts_at",
           "ends_at",
-          "reason",
-          "kind"
+          "message"
         ],
         "title": "ClosureOut",
         "type": "object"
@@ -809,6 +1001,29 @@
           "shifts"
         ],
         "title": "DayHoursOut",
+        "type": "object"
+      },
+      "DaySchema": {
+        "properties": {
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftSchema"
+            },
+            "maxItems": 10,
+            "title": "Shifts",
+            "type": "array"
+          },
+          "weekday": {
+            "maximum": 6,
+            "minimum": 0,
+            "title": "Weekday",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "weekday"
+        ],
+        "title": "DaySchema",
         "type": "object"
       },
       "DeletionIn": {
@@ -1087,6 +1302,39 @@
           "end"
         ],
         "title": "HoldOut",
+        "type": "object"
+      },
+      "HoursIn": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DaySchema"
+            },
+            "maxItems": 7,
+            "title": "Days",
+            "type": "array"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "HoursIn",
+        "type": "object"
+      },
+      "HoursOut": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/DaySchema"
+            },
+            "title": "Days",
+            "type": "array"
+          }
+        },
+        "required": [
+          "days"
+        ],
+        "title": "HoursOut",
         "type": "object"
       },
       "LocationOut": {
@@ -1539,6 +1787,23 @@
         "title": "PhoneConfirmIn",
         "type": "object"
       },
+      "PhotoOrderIn": {
+        "properties": {
+          "photo_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 20,
+            "title": "Photo Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "photo_ids"
+        ],
+        "title": "PhotoOrderIn",
+        "type": "object"
+      },
       "PhotoOut": {
         "properties": {
           "id": {
@@ -1654,18 +1919,20 @@
       },
       "ProfilePatchIn": {
         "properties": {
-          "default_area_id": {
+          "address": {
             "anyOf": [
               {
-                "type": "integer"
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Default Area Id"
+            "title": "Address"
           },
-          "default_city_id": {
+          "area_id": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1674,12 +1941,88 @@
                 "type": "null"
               }
             ],
-            "title": "Default City Id"
+            "title": "Area Id"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "city_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Id"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "gender_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "women",
+                  "men",
+                  "unisex"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender Type"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
           },
           "name": {
             "anyOf": [
               {
-                "maxLength": 100,
+                "maxLength": 150,
                 "minLength": 1,
                 "type": "string"
               },
@@ -1688,6 +2031,30 @@
               }
             ],
             "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 25,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "whatsapp": {
+            "anyOf": [
+              {
+                "maxLength": 25,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Whatsapp"
           }
         },
         "title": "ProfilePatchIn",
@@ -2577,6 +2944,19 @@
         "title": "SearchParams",
         "type": "object"
       },
+      "ServiceDeleteOut": {
+        "properties": {
+          "deactivated": {
+            "title": "Deactivated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deactivated"
+        ],
+        "title": "ServiceDeleteOut",
+        "type": "object"
+      },
       "ServiceGroupOut": {
         "properties": {
           "category": {
@@ -2604,8 +2984,98 @@
         "title": "ServiceGroupOut",
         "type": "object"
       },
+      "ServiceIn": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "description": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Description",
+            "type": "string"
+          },
+          "duration_minutes": {
+            "maximum": 600,
+            "minimum": 5,
+            "multipleOf": 5,
+            "title": "Duration Minutes",
+            "type": "integer"
+          },
+          "gender": {
+            "default": "unisex",
+            "enum": [
+              "women",
+              "men",
+              "unisex"
+            ],
+            "title": "Gender",
+            "type": "string"
+          },
+          "is_from_price": {
+            "default": false,
+            "title": "Is From Price",
+            "type": "boolean"
+          },
+          "name": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "maximum": 10000000,
+            "minimum": 0,
+            "title": "Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "price",
+          "duration_minutes"
+        ],
+        "title": "ServiceIn",
+        "type": "object"
+      },
+      "ServiceOrderIn": {
+        "properties": {
+          "service_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Service Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "service_ids"
+        ],
+        "title": "ServiceOrderIn",
+        "type": "object"
+      },
       "ServiceOut": {
         "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
           "description": {
             "title": "Description",
             "type": "string"
@@ -2614,9 +3084,17 @@
             "title": "Duration Minutes",
             "type": "integer"
           },
+          "gender": {
+            "title": "Gender",
+            "type": "string"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
           },
           "is_from_price": {
             "title": "Is From Price",
@@ -2629,17 +3107,132 @@
           "price": {
             "title": "Price",
             "type": "integer"
+          },
+          "sort_order": {
+            "title": "Sort Order",
+            "type": "integer"
           }
         },
         "required": [
           "id",
           "name",
           "description",
+          "category_id",
           "price",
           "is_from_price",
-          "duration_minutes"
+          "duration_minutes",
+          "gender",
+          "is_active",
+          "sort_order"
         ],
         "title": "ServiceOut",
+        "type": "object"
+      },
+      "ServicePatchIn": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "maximum": 600,
+                "minimum": 5,
+                "multipleOf": 5,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "enum": [
+                  "women",
+                  "men",
+                  "unisex"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "is_from_price": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is From Price"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "maximum": 10000000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          }
+        },
+        "title": "ServicePatchIn",
         "type": "object"
       },
       "ShiftOut": {
@@ -2658,6 +3251,26 @@
           "closes_at"
         ],
         "title": "ShiftOut",
+        "type": "object"
+      },
+      "ShiftSchema": {
+        "properties": {
+          "closes_at": {
+            "format": "time",
+            "title": "Closes At",
+            "type": "string"
+          },
+          "opens_at": {
+            "format": "time",
+            "title": "Opens At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "opens_at",
+          "closes_at"
+        ],
+        "title": "ShiftSchema",
         "type": "object"
       },
       "SlotOut": {
@@ -4402,6 +5015,262 @@
         ]
       }
     },
+    "/api/v1/provider/businesses/{business_id}": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_get_business",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBusinessOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Business",
+        "tags": [
+          "provider"
+        ]
+      },
+      "patch": {
+        "operationId": "apps_businesses_api_provider_patch_business",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfilePatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerBusinessOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Patch Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/booking-settings": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_get_booking_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Booking Settings",
+        "tags": [
+          "provider"
+        ]
+      },
+      "patch": {
+        "operationId": "apps_businesses_api_provider_patch_booking_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingSettingsIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingSettingsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Patch Booking Settings",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/closures": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_closures",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClosureOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Closures",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_create_closure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClosureIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClosureOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Closure",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/businesses/{business_id}/documents": {
       "get": {
         "operationId": "apps_businesses_api_provider_list_documents",
@@ -4541,6 +5410,90 @@
           }
         ],
         "summary": "Delete Document",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/hours": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_get_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoursOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Hours",
+        "tags": [
+          "provider"
+        ]
+      },
+      "put": {
+        "operationId": "apps_businesses_api_provider_put_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoursIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoursOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Put Hours",
         "tags": [
           "provider"
         ]
@@ -4710,6 +5663,46 @@
       }
     },
     "/api/v1/provider/businesses/{business_id}/photos": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_photos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOutOwner"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Photos",
+        "tags": [
+          "provider"
+        ]
+      },
       "post": {
         "operationId": "apps_businesses_api_provider_upload_photos",
         "parameters": [
@@ -4775,6 +5768,323 @@
         ]
       }
     },
+    "/api/v1/provider/businesses/{business_id}/photos/order": {
+      "patch": {
+        "operationId": "apps_businesses_api_provider_order_photos",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PhotoOutOwner"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Order Photos",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/photos/{photo_id}": {
+      "delete": {
+        "operationId": "apps_businesses_api_provider_remove_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "title": "Photo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Remove Photo",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/photos/{photo_id}/cover": {
+      "patch": {
+        "operationId": "apps_businesses_api_provider_cover_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "photo_id",
+            "required": true,
+            "schema": {
+              "title": "Photo Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoOutOwner"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Cover Photo",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/preview": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_preview_business",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessPageOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Preview Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/services": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_services",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Services",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_create_service",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Service",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/services/order": {
+      "patch": {
+        "operationId": "apps_businesses_api_provider_order_services",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceOrderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Order Services",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/businesses/{business_id}/submit": {
       "post": {
         "operationId": "apps_businesses_api_provider_submit_business",
@@ -4818,6 +6128,118 @@
           }
         ],
         "summary": "Submit Business",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/closures/{closure_id}": {
+      "delete": {
+        "operationId": "apps_businesses_api_provider_remove_closure",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "closure_id",
+            "required": true,
+            "schema": {
+              "title": "Closure Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Remove Closure",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/services/{service_id}": {
+      "delete": {
+        "operationId": "apps_businesses_api_provider_remove_service",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "required": true,
+            "schema": {
+              "title": "Service Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceDeleteOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Remove Service",
+        "tags": [
+          "provider"
+        ]
+      },
+      "patch": {
+        "operationId": "apps_businesses_api_provider_patch_service",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "required": true,
+            "schema": {
+              "title": "Service Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServicePatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Patch Service",
         "tags": [
           "provider"
         ]

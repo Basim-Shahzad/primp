@@ -292,3 +292,10 @@ def rebook_draft(user_id: int, public_id: str) -> RebookDraftOut | None:
         unavailable_service_ids=unavailable,
         can_book=listed and not unavailable,
     )
+
+
+def service_has_appointments(service_id: int) -> bool:
+    """True when any appointment (past or future, any status) references the service."""
+    from .models import AppointmentService
+
+    return AppointmentService.objects.filter(service_id=service_id).exists()

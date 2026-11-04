@@ -249,7 +249,7 @@ def _basics(business: Business, data: BasicsStep) -> None:
 
 
 def _location(business: Business, data: LocationStep) -> None:
-    city = geo.get_onboardable_city(data.city_id or business.city_id)
+    city = geo.get_onboardable_city(business.city_id if data.city_id is None else data.city_id)
     if city is None:
         raise _bad_field("city_id", _("This city is not available."))
     area = None

@@ -1,14 +1,14 @@
 """Request/response schemas for the provider (business owner) API."""
 
 import uuid
-from datetime import datetime
-from typing import Annotated, Any
+from datetime import date, datetime, time
+from typing import Annotated, Any, Literal
 
 from ninja import Field, Schema
 from pydantic import StringConstraints
 
 from .models import Business, BusinessDocument
-from .provider_validators import Description, Text150
+from .provider_validators import E164, Address, Description, Text150
 
 # ---- business ----
 
@@ -139,3 +139,127 @@ class PhotoOutOwner(Schema):
     thumb: str
     is_cover: bool
     sort_order: int
+
+
+# ---- profile ----
+
+
+class ProfilePatchIn(Schema):
+    name: Text150 | None = None
+    category_id: int | None = None
+    description: Description | None = None
+    phone: E164 | None = None
+    whatsapp: E164 | None = None
+    address: Address | None = None
+    gender_type: Literal["women", "men", "unisex"] | None = None
+    city_id: int | None = None
+    area_id: int | None = None
+    lat: float | None = Field(None, ge=-90, le=90)
+    lng: float | None = Field(None, ge=-180, le=180)
+
+
+class PhotoOrderIn(Schema):
+    photo_ids: list[int] = Field(max_length=20)
+
+
+class ServiceOrderIn(Schema):
+    service_ids: list[int] = Field(max_length=200)
+
+
+Duration = Annotated[int, Field(ge=5, le=600, multiple_of=5)]
+Price = Annotated[int, Field(ge=0, le=10_000_000)]
+GenderLit = Literal["women", "men", "unisex"]
+
+
+class ServiceIn(Schema):
+    name: Text150
+    description: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] = ""
+    category_id: int | None = None
+    price: Price
+    is_from_price: bool = False
+    duration_minutes: Duration
+    gender: GenderLit = "unisex"
+
+
+class ServicePatchIn(Schema):
+    name: Text150 | None = None
+    description: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] | None
+    ) = None
+    category_id: int | None = None
+    price: Price | None = None
+    is_from_price: bool | None = None
+    duration_minutes: Duration | None = None
+    gender: GenderLit | None = None
+    is_active: bool | None = None
+
+
+class ServiceOut(Schema):
+    id: int
+    name: str
+    description: str
+    category_id: int | None
+    price: int
+    is_from_price: bool
+    duration_minutes: int
+    gender: str
+    is_active: bool
+    sort_order: int
+
+
+class ServiceDeleteOut(Schema):
+    deactivated: bool
+
+
+class ShiftSchema(Schema):
+    opens_at: time
+    closes_at: time
+
+
+class DaySchema(Schema):
+    weekday: int = Field(ge=0, le=6)
+    shifts: list[ShiftSchema] = Field(default_factory=list, max_length=10)
+
+
+class HoursIn(Schema):
+    days: list[DaySchema] = Field(max_length=7)
+
+
+class HoursOut(Schema):
+    days: list[DaySchema]
+
+
+class ClosureIn(Schema):
+    starts_on: date
+    ends_on: date
+    message: Annotated[str, StringConstraints(strip_whitespace=True, max_length=255)] = ""
+
+
+class ClosureOut(Schema):
+    id: int
+    kind: str
+    starts_at: datetime
+    ends_at: datetime
+    message: str
+
+
+class BookingSettingsIn(Schema):
+    confirm_mode: Literal["instant", "manual"] | None = None
+    cancellation_notice_hours: int | None = Field(None, ge=0, le=72)
+    lead_time_minutes: int | None = Field(None, ge=0, le=1440)
+    max_advance_days: int | None = Field(None, ge=1, le=180)
+    slot_interval_minutes: Literal[15, 30, 60] | None = None
+    buffer_minutes: int | None = Field(None, ge=0, le=60)
+    staff_level_booking: bool | None = None
+    parallel_capacity: int | None = Field(None, ge=1, le=50)
+
+
+class BookingSettingsOut(Schema):
+    confirm_mode: str
+    cancellation_notice_hours: int
+    lead_time_minutes: int
+    max_advance_days: int
+    slot_interval_minutes: int
+    buffer_minutes: int
+    staff_level_booking: bool
+    parallel_capacity: int

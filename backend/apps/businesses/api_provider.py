@@ -5,26 +5,44 @@ from typing import Any
 
 from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Router, Status, UploadedFile
+from pydantic import BaseModel
 
 from apps.accounts.auth import jwt_auth
 from apps.accounts.roles import Role
 from apps.core import ratelimit
-from apps.core.errors import not_found
+from apps.core.errors import not_found, validation_error
 from apps.core.http import get_client_ip
 from apps.core.permissions import require_role
 
-from . import documents, media, onboarding, selectors
-from .models import Business
+from . import documents, hours, media, menu, onboarding, profile, selectors
+from . import page as page_service
+from .models import Business, Closure, Service
 from .provider_schemas import (
+    BookingSettingsIn,
+    BookingSettingsOut,
     BusinessCreateIn,
     ChecklistItemOut,
+    ClosureIn,
+    ClosureOut,
+    DaySchema,
     DocumentOut,
+    HoursIn,
+    HoursOut,
     OnboardingOut,
     OwnerBusinessOut,
+    PhotoOrderIn,
     PhotoOutOwner,
+    ProfilePatchIn,
+    ServiceDeleteOut,
+    ServiceIn,
+    ServiceOrderIn,
+    ServiceOut,
+    ServicePatchIn,
+    ShiftSchema,
     StarterItemOut,
     SubmitIn,
 )
+from .schemas import BusinessPageOut
 
 provider_router = Router(tags=["provider"], auth=jwt_auth)
 files_router = Router(tags=["provider"])
@@ -193,3 +211,224 @@ def upload_photos(
     _throttle_upload(user.pk)
     photos = media.add_photos(user.pk, str(business_id), [f.read() for f in files])
     return Status(201, [photo_out(p) for p in photos])
+
+
+def partial(payload: BaseModel, nullable: frozenset[str] = frozenset()) -> dict[str, Any]:
+    """Only the fields the client sent; an explicit null is an error unless the field allows it."""
+    changes = payload.model_dump(exclude_unset=True)
+    bad = [k for k, v in changes.items() if v is None and k not in nullable]
+    if bad:
+        raise validation_error({k: ["This field may not be null."] for k in bad})
+    return changes
+
+
+# ---- profile ----
+
+
+@provider_router.get("/businesses/{business_id}", response=OwnerBusinessOut)
+def get_business(request: HttpRequest, business_id: uuid.UUID) -> OwnerBusinessOut:
+    user = owner_only(request)
+    return OwnerBusinessOut.from_business(selectors.owned_business(user.pk, business_id))
+
+
+@provider_router.patch("/businesses/{business_id}", response=OwnerBusinessOut)
+def patch_business(
+    request: HttpRequest, business_id: uuid.UUID, payload: ProfilePatchIn
+) -> OwnerBusinessOut:
+    user = owner_only(request)
+    changes = partial(payload, nullable=frozenset({"area_id"}))
+    business = profile.update_profile(user.pk, str(business_id), changes)
+    return OwnerBusinessOut.from_business(business)
+
+
+@provider_router.get("/businesses/{business_id}/preview", response=BusinessPageOut)
+def preview_business(request: HttpRequest, business_id: uuid.UUID) -> dict[str, Any]:
+    user = owner_only(request)
+    return page_service.render_page(selectors.owned_business(user.pk, business_id))
+
+
+# ---- photos ----
+
+
+@provider_router.get("/businesses/{business_id}/photos", response=list[PhotoOutOwner])
+def list_photos(request: HttpRequest, business_id: uuid.UUID) -> list[PhotoOutOwner]:
+    user = owner_only(request)
+    business = selectors.owned_business(user.pk, business_id)
+    return [photo_out(p) for p in business.photos.all()]
+
+
+@provider_router.patch("/businesses/{business_id}/photos/order", response=list[PhotoOutOwner])
+def order_photos(
+    request: HttpRequest, business_id: uuid.UUID, payload: PhotoOrderIn
+) -> list[PhotoOutOwner]:
+    user = owner_only(request)
+    return [photo_out(p) for p in media.reorder(user.pk, str(business_id), payload.photo_ids)]
+
+
+@provider_router.patch("/businesses/{business_id}/photos/{photo_id}/cover", response=PhotoOutOwner)
+def cover_photo(request: HttpRequest, business_id: uuid.UUID, photo_id: int) -> PhotoOutOwner:
+    user = owner_only(request)
+    return photo_out(media.make_cover(user.pk, str(business_id), photo_id))
+
+
+@provider_router.delete("/businesses/{business_id}/photos/{photo_id}", response={204: None})
+def remove_photo(request: HttpRequest, business_id: uuid.UUID, photo_id: int) -> Status[Any]:
+    user = owner_only(request)
+    media.delete_photo(user.pk, str(business_id), photo_id)
+    return Status(204, None)
+
+
+# ---- services ----
+
+
+def service_out(s: Service) -> ServiceOut:
+    return ServiceOut(
+        id=s.pk,
+        name=s.name,
+        description=s.description,
+        category_id=s.category_id,
+        price=s.price,
+        is_from_price=s.is_from_price,
+        duration_minutes=s.duration_minutes,
+        gender=s.gender,
+        is_active=s.is_active,
+        sort_order=s.sort_order,
+    )
+
+
+@provider_router.get("/businesses/{business_id}/services", response=list[ServiceOut])
+def list_services(request: HttpRequest, business_id: uuid.UUID) -> list[ServiceOut]:
+    user = owner_only(request)
+    return [service_out(s) for s in menu.list_services(user.pk, str(business_id))]
+
+
+@provider_router.post("/businesses/{business_id}/services", response={201: ServiceOut})
+def create_service(
+    request: HttpRequest, business_id: uuid.UUID, payload: ServiceIn
+) -> Status[ServiceOut]:
+    user = owner_only(request)
+    service = menu.create_service(user.pk, str(business_id), payload.model_dump())
+    return Status(201, service_out(service))
+
+
+@provider_router.patch("/businesses/{business_id}/services/order", response=list[ServiceOut])
+def order_services(
+    request: HttpRequest, business_id: uuid.UUID, payload: ServiceOrderIn
+) -> list[ServiceOut]:
+    user = owner_only(request)
+    return [service_out(s) for s in menu.reorder(user.pk, str(business_id), payload.service_ids)]
+
+
+@provider_router.patch("/services/{service_id}", response=ServiceOut)
+def patch_service(request: HttpRequest, service_id: int, payload: ServicePatchIn) -> ServiceOut:
+    user = owner_only(request)
+    changes = partial(payload, nullable=frozenset({"category_id"}))
+    return service_out(menu.update_service(user.pk, service_id, changes))
+
+
+@provider_router.delete("/services/{service_id}", response=ServiceDeleteOut)
+def remove_service(request: HttpRequest, service_id: int) -> ServiceDeleteOut:
+    user = owner_only(request)
+    return ServiceDeleteOut(deactivated=menu.delete_service(user.pk, service_id))
+
+
+# ---- weekly hours ----
+
+
+def hours_out(business_id: int) -> HoursOut:
+    return HoursOut(
+        days=[
+            DaySchema(
+                weekday=d.weekday,
+                shifts=[ShiftSchema(opens_at=o, closes_at=c) for o, c in d.shifts],
+            )
+            for d in hours.week_of(business_id, None)
+        ]
+    )
+
+
+@provider_router.get("/businesses/{business_id}/hours", response=HoursOut)
+def get_hours(request: HttpRequest, business_id: uuid.UUID) -> HoursOut:
+    user = owner_only(request)
+    return hours_out(selectors.owned_business(user.pk, business_id).pk)
+
+
+@provider_router.put("/businesses/{business_id}/hours", response=HoursOut)
+def put_hours(request: HttpRequest, business_id: uuid.UUID, payload: HoursIn) -> HoursOut:
+    user = owner_only(request)
+    business = selectors.owned_business(user.pk, business_id)
+    week = [
+        hours.DayShifts(d.weekday, [(s.opens_at, s.closes_at) for s in d.shifts])
+        for d in payload.days
+    ]
+    hours.replace_week(business.pk, None, week)
+    return hours_out(business.pk)
+
+
+# ---- closures ----
+
+
+def closure_out(c: Closure) -> ClosureOut:
+    return ClosureOut(
+        id=c.pk, kind=c.kind, starts_at=c.starts_at, ends_at=c.ends_at, message=c.reason
+    )
+
+
+@provider_router.get("/businesses/{business_id}/closures", response=list[ClosureOut])
+def list_closures(request: HttpRequest, business_id: uuid.UUID) -> list[ClosureOut]:
+    user = owner_only(request)
+    return [closure_out(c) for c in profile.list_closures(user.pk, str(business_id))]
+
+
+@provider_router.post("/businesses/{business_id}/closures", response={201: ClosureOut})
+def create_closure(
+    request: HttpRequest, business_id: uuid.UUID, payload: ClosureIn
+) -> Status[ClosureOut]:
+    user = owner_only(request)
+    closure = profile.create_closure(
+        user.pk,
+        str(business_id),
+        starts_on=payload.starts_on,
+        ends_on=payload.ends_on,
+        message=payload.message,
+    )
+    return Status(201, closure_out(closure))
+
+
+@provider_router.delete("/closures/{closure_id}", response={204: None})
+def remove_closure(request: HttpRequest, closure_id: int) -> Status[Any]:
+    user = owner_only(request)
+    profile.delete_closure(user.pk, closure_id)
+    return Status(204, None)
+
+
+# ---- booking settings ----
+
+
+def settings_out(b: Business) -> BookingSettingsOut:
+    return BookingSettingsOut(
+        confirm_mode=b.confirm_mode,
+        cancellation_notice_hours=b.cancellation_notice_hours,
+        lead_time_minutes=b.lead_time_minutes,
+        max_advance_days=b.max_advance_days,
+        slot_interval_minutes=b.slot_interval_minutes,
+        buffer_minutes=b.buffer_minutes,
+        staff_level_booking=b.staff_level_booking,
+        parallel_capacity=b.parallel_capacity,
+    )
+
+
+@provider_router.get("/businesses/{business_id}/booking-settings", response=BookingSettingsOut)
+def get_booking_settings(request: HttpRequest, business_id: uuid.UUID) -> BookingSettingsOut:
+    user = owner_only(request)
+    return settings_out(selectors.owned_business(user.pk, business_id))
+
+
+@provider_router.patch("/businesses/{business_id}/booking-settings", response=BookingSettingsOut)
+def patch_booking_settings(
+    request: HttpRequest, business_id: uuid.UUID, payload: BookingSettingsIn
+) -> BookingSettingsOut:
+    user = owner_only(request)
+    changes = partial(payload)
+    business = profile.update_booking_settings(user.pk, str(business_id), changes)
+    return settings_out(business)

@@ -154,6 +154,7 @@ class Service(TimeStampedModel):
     price = models.PositiveIntegerField(help_text="PKR")
     is_from_price = models.BooleanField(default=False)
     duration_minutes = models.PositiveIntegerField()
+    gender = models.CharField(max_length=10, choices=GenderType.choices, default=GenderType.UNISEX)
     is_active = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
 
