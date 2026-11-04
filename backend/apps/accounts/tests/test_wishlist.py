@@ -240,7 +240,7 @@ def test_wishlist_requires_auth_and_customer_role() -> None:
     assert Client().get(BASE).status_code == 401
     assert Client().post(f"{BASE}/{b.public_id}").status_code == 401
     assert Client().delete(f"{BASE}/{b.public_id}").status_code == 401
-    _, s = login_client(UserFactory(role=Role.BUSINESS_OWNER))
+    _, s = login_client(UserFactory(role=Role.ADMIN))
     for call in (
         lambda: Client().get(BASE, **bearer(s)),
         lambda: Client().post(f"{BASE}/{b.public_id}", **bearer(s)),

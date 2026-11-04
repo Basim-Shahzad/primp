@@ -199,7 +199,7 @@ def test_any_staff_picks_least_busy_then_lowest_id() -> None:
 def test_hold_requires_auth_and_customer_role() -> None:
     b, svc = capacity_business()
     assert post(HOLD, hold_body(b, [svc]), {}).status_code == 401
-    owner = UserFactory(role=Role.BUSINESS_OWNER)
+    owner = UserFactory(role=Role.ADMIN)
     _, session = login_client(owner)
     r = post(HOLD, hold_body(b, [svc]), bearer(session))
     assert r.status_code == 403 and r.json()["code"] == "permission_denied"

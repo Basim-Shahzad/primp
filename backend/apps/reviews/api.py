@@ -7,7 +7,7 @@ from pydantic import Field
 
 from apps.accounts import selectors as accounts
 from apps.accounts.auth import jwt_auth
-from apps.accounts.roles import Role
+from apps.accounts.roles import CUSTOMER_CAPABLE
 from apps.businesses import selectors as businesses
 from apps.core.errors import not_found
 from apps.core.pagination import DEFAULT_LIMIT, MAX_LIMIT, paginate_cursor
@@ -98,7 +98,7 @@ def create_review(
     payload: Form[ReviewCreateIn],
     photos: File[list[UploadedFile]] = None,  # type: ignore[assignment]
 ) -> Any:
-    user = require_role(Role.CUSTOMER)(request)
+    user = require_role(*CUSTOMER_CAPABLE)(request)
     review = services.create_review(
         user_id=user.pk,
         appointment_public_id=str(appointment_id),
@@ -111,7 +111,7 @@ def create_review(
 
 @reviews_router.patch("/{review_id}", auth=jwt_auth, response=MyReviewOut)
 def edit_review(request: HttpRequest, review_id: uuid.UUID, payload: ReviewEditIn) -> MyReviewOut:
-    user = require_role(Role.CUSTOMER)(request)
+    user = require_role(*CUSTOMER_CAPABLE)(request)
     review = services.edit_review(
         user_id=user.pk,
         review_public_id=str(review_id),

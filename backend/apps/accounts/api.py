@@ -13,7 +13,7 @@ from apps.core.permissions import require_role
 from . import otp, profile, ratelimits, services, tokens, wishlist
 from .auth import jwt_auth
 from .cookies import check_csrf, clear_refresh_cookies, read_refresh_token, set_refresh_cookies
-from .roles import Role
+from .roles import CUSTOMER_CAPABLE
 from .schemas import (
     DeletionIn,
     DeletionOut,
@@ -31,6 +31,7 @@ from .schemas import (
     ProfilePatchIn,
     RefreshIn,
     RegisterIn,
+    RegisterOwnerIn,
     TokenIn,
     TokenOut,
     UserOut,
@@ -94,6 +95,19 @@ def logout(request: HttpRequest, payload: RefreshIn | None = None) -> HttpRespon
 def register(request: HttpRequest, payload: RegisterIn) -> HttpResponse:
     session = services.register_with_email(
         name=payload.name, email=payload.email, password=payload.password, request=request
+    )
+    return token_response(request, session, status=201)
+
+
+@auth_router.post("/register/business-owner", response={201: TokenOut}, auth=None)
+def register_business_owner(request: HttpRequest, payload: RegisterOwnerIn) -> HttpResponse:
+    session = services.register_business_owner(
+        name=payload.name,
+        phone=payload.phone,
+        code=payload.code,
+        email=payload.email,
+        password=payload.password,
+        request=request,
     )
     return token_response(request, session, status=201)
 
@@ -167,6 +181,12 @@ def update_me(request: HttpRequest, payload: ProfilePatchIn) -> UserOut:
     return UserOut.from_user(user)
 
 
+@users_router.post("/me/become-owner", response=UserOut, auth=jwt_auth)
+def become_owner(request: HttpRequest) -> UserOut:
+    user = services.become_owner(request.auth)  # type: ignore[attr-defined]
+    return UserOut.from_user(user)
+
+
 @users_router.post("/me/photo", response=UserOut, auth=jwt_auth)
 def upload_photo(request: HttpRequest, file: File[UploadedFile]) -> UserOut:
     user = request.auth  # type: ignore[attr-defined]
@@ -208,7 +228,7 @@ def deletion_request(
 
 
 def _customer(request: HttpRequest) -> Any:
-    return require_role(Role.CUSTOMER)(request)
+    return require_role(*CUSTOMER_CAPABLE)(request)
 
 
 @users_router.get("/me/wishlist", auth=jwt_auth, response=WishlistPageOut)

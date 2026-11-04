@@ -20,7 +20,12 @@ LIMITS: dict[str, tuple[int, int]] = {
     "password_reset_confirm": (10, 3600),
 }
 
-SERVICE_LIMITED = {"/auth/register", "/auth/login", "/auth/otp/request"}
+SERVICE_LIMITED = {
+    "/auth/register",
+    "/auth/register/business-owner",
+    "/auth/login",
+    "/auth/otp/request",
+}
 
 PATHS = {
     "/auth/refresh": "refresh",

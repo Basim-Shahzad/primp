@@ -33,6 +33,14 @@ class RegisterIn(Schema):
     password: Password
 
 
+class RegisterOwnerIn(Schema):
+    name: Name
+    phone: PKPhone
+    code: str = Field(pattern=r"^\d{6}$")
+    email: Email
+    password: Password
+
+
 class LoginIn(Schema):
     email: Email
     password: Password

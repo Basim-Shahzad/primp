@@ -9,7 +9,7 @@ from django.utils import timezone
 from ninja import Field, Header, Query, Router, Schema, Status
 
 from apps.accounts.auth import jwt_auth
-from apps.accounts.roles import Role
+from apps.accounts.roles import CUSTOMER_CAPABLE
 from apps.businesses import selectors as biz
 from apps.core.errors import AppError, not_found
 from apps.core.pagination import DEFAULT_LIMIT, MAX_LIMIT, paginate_cursor
@@ -81,7 +81,7 @@ IDEMPOTENCY_KEY_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
 
 
 def _customer(request: HttpRequest) -> Any:
-    return require_role(Role.CUSTOMER)(request)
+    return require_role(*CUSTOMER_CAPABLE)(request)
 
 
 @appointments_router.post("/hold", auth=jwt_auth, response={201: HoldOut})

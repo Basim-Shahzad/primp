@@ -182,7 +182,7 @@ def test_other_customers_or_unknown_appointment_404() -> None:
 def test_create_requires_auth_and_customer_role() -> None:
     appt, _, _ = completed_appointment()
     assert submit(appt, {}).status_code == 401
-    _, session = login_client(UserFactory(role=Role.BUSINESS_OWNER))
+    _, session = login_client(UserFactory(role=Role.ADMIN))
     assert submit(appt, bearer(session)).status_code == 403
 
 

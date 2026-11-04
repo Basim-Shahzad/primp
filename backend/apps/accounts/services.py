@@ -96,12 +96,13 @@ def _create_customer(
     provider: str = AuthProvider.PASSWORD,
     email_verified: bool = False,
     phone_verified: bool = False,
+    role: str = Role.CUSTOMER,
 ) -> User:
     user = User.objects.create_user(
         email=email,
         phone=phone,
         password=password,
-        role=Role.CUSTOMER,
+        role=role,
         auth_provider=provider,
         is_email_verified=email_verified,
         is_phone_verified=phone_verified,
@@ -265,3 +266,72 @@ def confirm_password_reset(*, token: str, new_password: str) -> None:
         user.save(update_fields=["password", "failed_login_count", "locked_until", "updated_at"])
         revoke_all_sessions(user)
         audit.record("auth.password_reset", actor_id=user.pk, target_type="user", target_id=user.pk)
+
+
+def register_business_owner(
+    *, name: str, phone: str, code: str, email: str, password: str, request: HttpRequest
+) -> SessionTokens:
+    """Create a business owner. The phone must be proven with a login OTP (same OTP flow)."""
+    ip = get_client_ip(request)
+    if ip:
+        ratelimit.enforce(
+            f"register-ip:{ip}", limit=REGISTER_IP_LIMIT[0], window_seconds=REGISTER_IP_LIMIT[1]
+        )
+    email = email.strip().lower()
+    validate_password(password, User(email=email))
+    if User.objects.filter(phone=phone).exists():
+        raise AppError(
+            "phone_taken",
+            _("An account with this phone number already exists."),
+            409,
+            {"phone": [_t("Already registered.")]},
+        )
+    otp.verify_otp(phone, otp.LOGIN, code)
+    try:
+        with transaction.atomic():
+            user = _create_customer(
+                email=email,
+                phone=phone,
+                password=password,
+                name=name.strip(),
+                phone_verified=True,
+                role=Role.BUSINESS_OWNER,
+            )
+            send_email_verification(user)
+            audit.record(
+                "user.owner_registered", actor_id=user.pk, target_type="user", target_id=user.pk
+            )
+    except IntegrityError as exc:
+        raise AppError(
+            "email_taken",
+            _("An account with this email already exists."),
+            409,
+            {"email": [_t("Already registered.")]},
+        ) from exc
+    return start_session(user, request)
+
+
+def become_owner(user: User) -> User:
+    """Upgrade a customer to business owner (customer abilities are kept, see ADR-011)."""
+    if user.role == Role.BUSINESS_OWNER:
+        return user
+    if user.role != Role.CUSTOMER:
+        raise AppError("permission_denied", _("This account cannot become a business owner."), 403)
+    if not user.is_phone_verified or not user.phone:
+        raise AppError(
+            "phone_not_verified",
+            _("Verify your phone number first."),
+            422,
+            {"phone": [_t("Verification required.")]},
+        )
+    user.role = Role.BUSINESS_OWNER
+    user.save(update_fields=["role", "updated_at"])
+    audit.record(
+        "user.became_owner",
+        actor_id=user.pk,
+        target_type="user",
+        target_id=user.pk,
+        before={"role": Role.CUSTOMER},
+        after={"role": Role.BUSINESS_OWNER},
+    )
+    return user
