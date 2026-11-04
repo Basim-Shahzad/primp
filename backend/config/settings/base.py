@@ -130,8 +130,30 @@ if _bucket:  # S3 / R2 / MinIO
     }
 else:
     _default_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+# Private storage for verification documents: never served by MEDIA_URL, no public URL
+PRIVATE_MEDIA_ROOT = env.str("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private_media"))
+_private_bucket = env.str("AWS_PRIVATE_BUCKET_NAME", default="")
+if _private_bucket:
+    _private_storage = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": _private_bucket,
+            "endpoint_url": env.str("AWS_S3_ENDPOINT_URL", default="") or None,
+            "access_key": env.str("AWS_ACCESS_KEY_ID", default=""),
+            "secret_key": env.str("AWS_SECRET_ACCESS_KEY", default=""),
+            "default_acl": "private",
+            "querystring_auth": True,
+            "file_overwrite": False,
+        },
+    }
+else:
+    _private_storage = {
+        "BACKEND": "apps.core.private_storage.PrivateFileSystemStorage",
+        "OPTIONS": {"location": PRIVATE_MEDIA_ROOT},
+    }
 STORAGES = {
     "default": _default_storage,
+    "private": _private_storage,
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
@@ -213,6 +235,12 @@ SMS_API_URL = env.str("SMS_API_URL", default="")
 SMS_API_KEY = env.str("SMS_API_KEY", default="")
 SMS_SENDER_ID = env.str("SMS_SENDER_ID", default="Primp")
 LOYALTY_RAISE_ON_ERROR = env.bool("LOYALTY_RAISE_ON_ERROR", default=False)
+
+# Provider side (Plan 6.2)
+PROVIDER_TERMS_VERSION = env.str("PROVIDER_TERMS_VERSION", default="2026-01")
+CITY_MAX_RADIUS_KM = env.float("CITY_MAX_RADIUS_KM", default=60.0)
+PRIVATE_URL_TTL_SECONDS = env.int("PRIVATE_URL_TTL_SECONDS", default=300)
+DOCUMENT_MAX_BYTES = env.int("DOCUMENT_MAX_BYTES", default=10 * 1024 * 1024)
 THROTTLE_ANON = env.str("THROTTLE_ANON", default="120/min")
 THROTTLE_USER = env.str("THROTTLE_USER", default="600/min")
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)

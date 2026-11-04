@@ -105,3 +105,16 @@ def register_exception_handlers(api: NinjaAPI) -> None:
     def unexpected(request: HttpRequest, exc: Exception) -> HttpResponse:
         logger.exception("Unhandled error", extra={"path": request.path})
         return _respond(api, request, 500, body("server_error", _("Something went wrong.")))
+
+
+def fields_from_pydantic(errors: list[dict[str, Any]]) -> dict[str, list[str]]:
+    """Field-level messages from a pydantic ValidationError's `.errors()` (loc without prefix)."""
+    fields: dict[str, list[str]] = {}
+    for err in errors:
+        name = ".".join(str(p) for p in err.get("loc", [])) or "non_field"
+        fields.setdefault(name, []).append(str(err.get("msg", "Invalid value.")))
+    return fields
+
+
+def validation_error(fields: dict[str, Any], message: Any = None) -> AppError:
+    return AppError("validation_error", message or _("Invalid input."), 422, fields)

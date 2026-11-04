@@ -151,3 +151,4 @@ htmlcov/
 media/
 media_test/
 staticfiles/
+private_media/

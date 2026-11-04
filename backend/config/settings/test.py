@@ -25,6 +25,7 @@ SMS_ADAPTER = "fake"
 GOOGLE_CLIENT_IDS = ["test-client-id.apps.googleusercontent.com"]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+    "private": {"BACKEND": "apps.core.private_storage.PrivateInMemoryStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 PAYMENT_WEBHOOK_SECRET = "test-webhook-secret"
