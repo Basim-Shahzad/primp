@@ -225,3 +225,36 @@ class TicketEvent(models.Model):
 
     def __str__(self) -> str:
         return f"{self.ticket_id}: {self.kind}"
+
+
+class Banner(TimeStampedModel):
+    """A scheduled promotional banner (shown when starts_at <= now < ends_at)."""
+
+    title = models.CharField(max_length=120)
+    subtitle = models.CharField(max_length=200, blank=True)
+    desktop_image = models.CharField(max_length=255, blank=True)
+    mobile_image = models.CharField(max_length=255, blank=True)
+    link_url = models.CharField(max_length=500)
+    city = models.ForeignKey(
+        "geo.City", null=True, blank=True, on_delete=models.CASCADE, related_name="+"
+    )
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField()
+    is_enabled = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0)
+    impressions = models.PositiveBigIntegerField(default=0)
+    clicks = models.PositiveBigIntegerField(default=0)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(ends_at__gt=models.F("starts_at")),
+                name="banner_ends_after_start",
+            )
+        ]
+        indexes = [models.Index(fields=["is_enabled", "starts_at", "ends_at"])]
+
+    def __str__(self) -> str:
+        return self.title

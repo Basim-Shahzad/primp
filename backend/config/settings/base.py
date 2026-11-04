@@ -196,6 +196,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "schedule": 300.0,
         "options": {"queue": "default"},
     },
+    "banner-counter-flush": {
+        "task": "apps.backoffice.tasks.flush_banner_counters",
+        "schedule": 60.0,
+        "options": {"queue": "bulk"},
+    },
     "loyalty-reconcile": {
         "task": "apps.loyalty.tasks.reconcile_accounts",
         "schedule": crontab(hour=21, minute=30),  # 02:30 Asia/Karachi

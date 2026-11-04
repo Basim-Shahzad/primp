@@ -125,12 +125,27 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
     ("post", "/admin/reviews/{review_id}/hide"): ("reviews.moderate", REASON, ""),
     ("post", "/admin/reviews/{review_id}/restore"): ("reviews.moderate", REASON, ""),
     ("post", "/admin/reviews/{review_id}/remove"): ("reviews.moderate", REASON, ""),
+    ("get", "/admin/banners"): ("banners.manage", None, ""),
+    ("post", "/admin/banners"): (
+        "banners.manage",
+        {
+            "title": "Eid sale",
+            "link_url": "/offers",
+            "starts_at": "2030-01-01T00:00:00+05:00",
+            "ends_at": "2030-01-02T00:00:00+05:00",
+        },
+        "",
+    ),
+    ("post", "/admin/banners/reorder"): ("banners.manage", {"ids": []}, ""),
+    ("patch", "/admin/banners/{banner_id}"): ("banners.manage", {"version": 1}, ""),
+    ("delete", "/admin/banners/{banner_id}"): ("banners.manage", None, "version=1"),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}
 # multipart uploads need a file to get past validation; the matrix test sends one
 UPLOADS: dict[tuple[str, str], str] = {
     ("post", "/admin/cities/{city_id}/areas/import"): "geo.manage",
+    ("post", "/admin/banners/{banner_id}/images/{kind}"): "banners.manage",
 }
 
 
@@ -149,4 +164,5 @@ def fill(template: str) -> str:
         key="commission_rate_bps",
         template_id=FAKE,
         rule_id=FAKE,
+        kind="desktop",
     )

@@ -7,3 +7,11 @@ def sweep_review_flags() -> int:
     from .services import tickets
 
     return tickets.process_review_flags()
+
+
+@shared_task(queue="bulk")
+def flush_banner_counters() -> int:
+    """Beat task (every minute): move banner counters from Redis to the database."""
+    from . import banners
+
+    return banners.flush_counters()
