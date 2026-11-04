@@ -185,6 +185,11 @@ CELERY_BEAT_SCHEDULE: dict[str, dict[str, object]] = {
         "schedule": 300.0,
         "options": {"queue": "default"},
     },
+    "daily-stats-rebuild": {
+        "task": "apps.bookings.tasks.rebuild_daily_stats",
+        "schedule": crontab(hour=21, minute=10),  # 02:10 Asia/Karachi
+        "options": {"queue": "bulk"},
+    },
     "loyalty-reconcile": {
         "task": "apps.loyalty.tasks.reconcile_accounts",
         "schedule": crontab(hour=21, minute=30),  # 02:30 Asia/Karachi
@@ -246,6 +251,7 @@ PROVIDER_TERMS_VERSION = env.str("PROVIDER_TERMS_VERSION", default="2026-01")
 CITY_MAX_RADIUS_KM = env.float("CITY_MAX_RADIUS_KM", default=60.0)
 PRIVATE_URL_TTL_SECONDS = env.int("PRIVATE_URL_TTL_SECONDS", default=300)
 DOCUMENT_MAX_BYTES = env.int("DOCUMENT_MAX_BYTES", default=10 * 1024 * 1024)
+ANALYTICS_RAISE_ON_ERROR = env.bool("ANALYTICS_RAISE_ON_ERROR", default=False)
 PENDING_ESCALATION_MINUTES = env.int("PENDING_ESCALATION_MINUTES", default=120)
 PENDING_AUTO_CANCEL_MINUTES = env.int("PENDING_AUTO_CANCEL_MINUTES", default=720)
 PROVIDER_COMPLETE_TOLERANCE_MINUTES = env.int("PROVIDER_COMPLETE_TOLERANCE_MINUTES", default=15)

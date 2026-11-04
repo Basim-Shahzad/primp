@@ -578,12 +578,15 @@ def _apply_move(
     by: str = "customer",
     **event_kwargs: object,
 ) -> None:
+    old_start = appointment.scheduled_start
     appointment.scheduled_start = start
     appointment.scheduled_end = end
     appointment.staff_id = staff_id
     appointment.save(update_fields=["scheduled_start", "scheduled_end", "staff", "updated_at"])
     _record(appointment, appointment.status, appointment.status, actor, note)
-    events.emit(events.booking_rescheduled, appointment.pk, by=by, **event_kwargs)
+    events.emit(
+        events.booking_rescheduled, appointment.pk, by=by, old_start=old_start, **event_kwargs
+    )
 
 
 def reschedule_by_customer(

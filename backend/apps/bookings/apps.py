@@ -6,4 +6,6 @@ class BookingsConfig(AppConfig):
     label = "bookings"
 
     def ready(self) -> None:
-        from . import signals  # noqa: F401
+        from . import analytics_receivers, signals  # noqa: F401
+
+        analytics_receivers.connect()

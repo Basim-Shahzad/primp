@@ -265,3 +265,11 @@ class OwnerRef:
 def owner_and_name(business_id: int) -> OwnerRef | None:
     row = Business.objects.filter(pk=business_id).values("owner_id", "name").first()
     return OwnerRef(row["owner_id"], row["name"]) if row else None
+
+
+def timezone_of(business_id: int) -> str | None:
+    return Business.objects.filter(pk=business_id).values_list("timezone", flat=True).first()
+
+
+def all_business_timezones() -> list[tuple[int, str]]:
+    return list(Business.objects.order_by("pk").values_list("pk", "timezone"))

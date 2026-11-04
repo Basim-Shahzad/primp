@@ -1436,6 +1436,26 @@
         "title": "EmailChangeIn",
         "type": "object"
       },
+      "ExportQuery": {
+        "properties": {
+          "from": {
+            "format": "date",
+            "title": "From",
+            "type": "string"
+          },
+          "to": {
+            "format": "date",
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "title": "ExportQuery",
+        "type": "object"
+      },
       "FeedItemOut": {
         "properties": {
           "body": {
@@ -3104,6 +3124,48 @@
           "name"
         ],
         "title": "ProviderStaffOut",
+        "type": "object"
+      },
+      "RangeQuery": {
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "range": {
+            "default": "30d",
+            "enum": [
+              "today",
+              "week",
+              "month",
+              "30d",
+              "custom"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "title": "RangeQuery",
         "type": "object"
       },
       "RatingOut": {
@@ -4845,6 +4907,66 @@
         "title": "SuggestionOut",
         "type": "object"
       },
+      "SummaryOut": {
+        "properties": {
+          "average_booking_value": {
+            "title": "Average Booking Value",
+            "type": "integer"
+          },
+          "cancellation_rate": {
+            "title": "Cancellation Rate",
+            "type": "number"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "no_show_rate": {
+            "title": "No Show Rate",
+            "type": "number"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/TotalsOut"
+          },
+          "previous_from": {
+            "format": "date",
+            "title": "Previous From",
+            "type": "string"
+          },
+          "previous_to": {
+            "format": "date",
+            "title": "Previous To",
+            "type": "string"
+          },
+          "range": {
+            "title": "Range",
+            "type": "string"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsOut"
+          }
+        },
+        "required": [
+          "range",
+          "from_date",
+          "to_date",
+          "totals",
+          "previous_from",
+          "previous_to",
+          "previous",
+          "cancellation_rate",
+          "no_show_rate",
+          "average_booking_value"
+        ],
+        "title": "SummaryOut",
+        "type": "object"
+      },
       "TimelineEventOut": {
         "properties": {
           "actor_role": {
@@ -4913,6 +5035,134 @@
         "title": "TimelineOut",
         "type": "object"
       },
+      "TimeseriesOut": {
+        "properties": {
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "granularity": {
+            "title": "Granularity",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/TimeseriesPointOut"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "granularity",
+          "from_date",
+          "to_date",
+          "points"
+        ],
+        "title": "TimeseriesOut",
+        "type": "object"
+      },
+      "TimeseriesPointOut": {
+        "properties": {
+          "bookings_total": {
+            "title": "Bookings Total",
+            "type": "integer"
+          },
+          "cancelled_by_business": {
+            "title": "Cancelled By Business",
+            "type": "integer"
+          },
+          "cancelled_by_customer": {
+            "title": "Cancelled By Customer",
+            "type": "integer"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "no_shows": {
+            "title": "No Shows",
+            "type": "integer"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "revenue_completed": {
+            "title": "Revenue Completed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "period_start",
+          "bookings_total",
+          "completed",
+          "cancelled_by_customer",
+          "cancelled_by_business",
+          "no_shows",
+          "revenue_completed"
+        ],
+        "title": "TimeseriesPointOut",
+        "type": "object"
+      },
+      "TimeseriesQuery": {
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "granularity": {
+            "default": "day",
+            "enum": [
+              "day",
+              "week"
+            ],
+            "title": "Granularity",
+            "type": "string"
+          },
+          "range": {
+            "default": "30d",
+            "enum": [
+              "today",
+              "week",
+              "month",
+              "30d",
+              "custom"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "title": "TimeseriesQuery",
+        "type": "object"
+      },
       "TokenIn": {
         "properties": {
           "token": {
@@ -4971,6 +5221,130 @@
           "expires_in"
         ],
         "title": "TokenOut",
+        "type": "object"
+      },
+      "TopServiceOut": {
+        "properties": {
+          "bookings": {
+            "title": "Bookings",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revenue": {
+            "title": "Revenue",
+            "type": "integer"
+          },
+          "service_id": {
+            "title": "Service Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "service_id",
+          "name",
+          "bookings",
+          "revenue"
+        ],
+        "title": "TopServiceOut",
+        "type": "object"
+      },
+      "TopServicesQuery": {
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "limit": {
+            "default": 5,
+            "maximum": 20,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "metric": {
+            "default": "count",
+            "enum": [
+              "count",
+              "revenue"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "range": {
+            "default": "30d",
+            "enum": [
+              "today",
+              "week",
+              "month",
+              "30d",
+              "custom"
+            ],
+            "title": "Range",
+            "type": "string"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "title": "TopServicesQuery",
+        "type": "object"
+      },
+      "TotalsOut": {
+        "properties": {
+          "bookings_total": {
+            "title": "Bookings Total",
+            "type": "integer"
+          },
+          "cancelled_by_business": {
+            "title": "Cancelled By Business",
+            "type": "integer"
+          },
+          "cancelled_by_customer": {
+            "title": "Cancelled By Customer",
+            "type": "integer"
+          },
+          "completed": {
+            "title": "Completed",
+            "type": "integer"
+          },
+          "no_shows": {
+            "title": "No Shows",
+            "type": "integer"
+          },
+          "revenue_completed": {
+            "title": "Revenue Completed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bookings_total",
+          "completed",
+          "cancelled_by_customer",
+          "cancelled_by_business",
+          "no_shows",
+          "revenue_completed"
+        ],
+        "title": "TotalsOut",
         "type": "object"
       },
       "TransactionOut": {
@@ -6969,6 +7343,317 @@
         ]
       }
     },
+    "/api/v1/provider/businesses/{business_id}/analytics/summary": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_analytics_summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "30d",
+              "enum": [
+                "today",
+                "week",
+                "month",
+                "30d",
+                "custom"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Analytics Summary",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/analytics/timeseries": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_analytics_timeseries",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "30d",
+              "enum": [
+                "today",
+                "week",
+                "month",
+                "30d",
+                "custom"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularity",
+            "required": false,
+            "schema": {
+              "default": "day",
+              "enum": [
+                "day",
+                "week"
+              ],
+              "title": "Granularity",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeseriesOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Analytics Timeseries",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/analytics/top-services": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_analytics_top_services",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "range",
+            "required": false,
+            "schema": {
+              "default": "30d",
+              "enum": [
+                "today",
+                "week",
+                "month",
+                "30d",
+                "custom"
+              ],
+              "title": "Range",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric",
+            "required": false,
+            "schema": {
+              "default": "count",
+              "enum": [
+                "count",
+                "revenue"
+              ],
+              "title": "Metric",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TopServiceOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Analytics Top Services",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/businesses/{business_id}/appointments": {
       "get": {
         "operationId": "apps_bookings_api_provider_list_appointments",
@@ -7193,6 +7878,57 @@
           }
         ],
         "summary": "Appointment Changes",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/businesses/{business_id}/appointments/export.csv": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_export_appointments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Export Appointments",
         "tags": [
           "provider"
         ]

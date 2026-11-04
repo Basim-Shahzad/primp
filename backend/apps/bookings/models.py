@@ -187,3 +187,52 @@ class RescheduleRequest(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.appointment_id} -> {self.new_start:%Y-%m-%d %H:%M} ({self.status})"
+
+
+class BusinessDailyStats(models.Model):
+    """Per business and local day (of the appointment start): counts and completed revenue."""
+
+    business = models.ForeignKey(
+        "businesses.Business", on_delete=models.CASCADE, related_name="daily_stats"
+    )
+    date = models.DateField()
+    bookings_total = models.PositiveIntegerField(default=0)
+    completed = models.PositiveIntegerField(default=0)
+    cancelled_by_customer = models.PositiveIntegerField(default=0)
+    cancelled_by_business = models.PositiveIntegerField(default=0)
+    no_shows = models.PositiveIntegerField(default=0)
+    revenue_completed = models.PositiveBigIntegerField(default=0, help_text="PKR")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "business daily stats"
+        constraints = [
+            models.UniqueConstraint(fields=["business", "date"], name="daily_stats_unique")
+        ]
+        indexes = [models.Index(fields=["business", "date"])]
+
+    def __str__(self) -> str:
+        return f"{self.business_id} {self.date}"
+
+
+class ServiceDailyStats(models.Model):
+    """Per service and local day: bookings (not cancelled) and completed revenue."""
+
+    business = models.ForeignKey("businesses.Business", on_delete=models.CASCADE, related_name="+")
+    service = models.ForeignKey(
+        "businesses.Service", on_delete=models.CASCADE, related_name="daily_stats"
+    )
+    date = models.DateField()
+    bookings = models.PositiveIntegerField(default=0)
+    revenue = models.PositiveBigIntegerField(default=0, help_text="PKR")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "service daily stats"
+        constraints = [
+            models.UniqueConstraint(fields=["service", "date"], name="service_daily_stats_unique")
+        ]
+        indexes = [models.Index(fields=["business", "date"])]
+
+    def __str__(self) -> str:
+        return f"{self.service_id} {self.date}"

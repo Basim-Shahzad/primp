@@ -1,20 +1,25 @@
 """Provider-side booking endpoints (staff impact workflow now; dashboard actions follow)."""
 
 import uuid
+from dataclasses import asdict
 from datetime import date, datetime
 from typing import Literal
+from zoneinfo import ZoneInfo
 
-from django.http import HttpRequest
+from django.http import HttpRequest, StreamingHttpResponse
 from ninja import Field, Query, Router, Schema, Status
 
 from apps.accounts.auth import jwt_auth
 from apps.accounts.phone import normalize_pk_mobile
 from apps.accounts.roles import Role
+from apps.businesses import selectors as business_selectors
+from apps.core import ratelimit
 from apps.core.errors import validation_error
 from apps.core.pagination import DEFAULT_LIMIT, MAX_LIMIT
 from apps.core.permissions import require_role
 
 from . import (
+    analytics,
     provider_actions,
     provider_dashboard,
     provider_schedule,
@@ -44,6 +49,11 @@ from .provider_schemas import (
     ScheduleOut,
     ShiftOut,
     StaffServicesIn,
+    SummaryOut,
+    TimeseriesOut,
+    TimeseriesPointOut,
+    TopServiceOut,
+    TotalsOut,
 )
 
 provider_router = Router(tags=["provider"], auth=jwt_auth)
@@ -347,3 +357,108 @@ def accept_request(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderA
 def decline_request(request: HttpRequest, appointment_id: uuid.UUID) -> ProviderAppointmentOut:
     user = owner_only(request)
     return _one(provider_actions.decline_reschedule_request(user.pk, str(appointment_id)))
+
+
+# ---- analytics ----
+
+EXPORT_LIMIT = (10, 3600)
+
+
+class RangeQuery(Schema):
+    range_name: Literal["today", "week", "month", "30d", "custom"] = Field("30d", alias="range")
+    from_date: date | None = Field(None, alias="from")
+    to_date: date | None = Field(None, alias="to")
+
+
+class TopServicesQuery(RangeQuery):
+    metric: Literal["count", "revenue"] = "count"
+    limit: int = Field(5, ge=1, le=20)
+
+
+class TimeseriesQuery(RangeQuery):
+    granularity: Literal["day", "week"] = "day"
+
+
+def _range(owner_id: int, business_id: uuid.UUID, q: RangeQuery) -> tuple[int, analytics.DateRange]:
+    business = business_selectors.owned_business(owner_id, business_id)
+    rng = analytics.resolve_range(q.range_name, q.from_date, q.to_date, ZoneInfo(business.timezone))
+    return business.pk, rng
+
+
+def _totals(t: analytics.Totals) -> TotalsOut:
+    return TotalsOut(**asdict(t))
+
+
+@provider_router.get("/businesses/{business_id}/analytics/summary", response=SummaryOut)
+def analytics_summary(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[RangeQuery]
+) -> SummaryOut:
+    user = owner_only(request)
+    pk, rng = _range(user.pk, business_id, params)
+    current, previous = analytics.totals(pk, rng), analytics.totals(pk, rng.previous())
+    handled = current.bookings_total or 1
+    return SummaryOut(
+        range=params.range_name,
+        from_date=rng.start,
+        to_date=rng.end,
+        totals=_totals(current),
+        previous_from=rng.previous().start,
+        previous_to=rng.previous().end,
+        previous=_totals(previous),
+        cancellation_rate=round(
+            (current.cancelled_by_customer + current.cancelled_by_business) / handled, 4
+        ),
+        no_show_rate=round(current.no_shows / handled, 4),
+        average_booking_value=(
+            current.revenue_completed // current.completed if current.completed else 0
+        ),
+    )
+
+
+@provider_router.get(
+    "/businesses/{business_id}/analytics/top-services", response=list[TopServiceOut]
+)
+def analytics_top_services(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[TopServicesQuery]
+) -> list[TopServiceOut]:
+    user = owner_only(request)
+    pk, rng = _range(user.pk, business_id, params)
+    return [
+        TopServiceOut(**row) for row in analytics.top_services(pk, rng, params.metric, params.limit)
+    ]
+
+
+@provider_router.get("/businesses/{business_id}/analytics/timeseries", response=TimeseriesOut)
+def analytics_timeseries(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[TimeseriesQuery]
+) -> TimeseriesOut:
+    user = owner_only(request)
+    pk, rng = _range(user.pk, business_id, params)
+    points = analytics.timeseries(pk, rng, params.granularity)
+    return TimeseriesOut(
+        granularity=params.granularity,
+        from_date=rng.start,
+        to_date=rng.end,
+        points=[TimeseriesPointOut(period_start=day, **asdict(t)) for day, t in points],
+    )
+
+
+class ExportQuery(Schema):
+    from_date: date = Field(alias="from")
+    to_date: date = Field(alias="to")
+
+
+@provider_router.get("/businesses/{business_id}/appointments/export.csv", response={200: None})
+def export_appointments(
+    request: HttpRequest, business_id: uuid.UUID, params: Query[ExportQuery]
+) -> StreamingHttpResponse:
+    user = owner_only(request)
+    ratelimit.enforce(f"export:{user.pk}", limit=EXPORT_LIMIT[0], window_seconds=EXPORT_LIMIT[1])
+    filename, lines = analytics.export_csv(
+        user.pk, str(business_id), params.from_date, params.to_date
+    )
+    response = StreamingHttpResponse(lines, content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    response["Cache-Control"] = "private, no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response

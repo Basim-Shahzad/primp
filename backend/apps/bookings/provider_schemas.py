@@ -197,3 +197,52 @@ class OwnerRescheduleIn(Schema):
 
 class NoteIn(Schema):
     note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)]
+
+
+# ---- analytics ----
+
+
+class TotalsOut(Schema):
+    bookings_total: int
+    completed: int
+    cancelled_by_customer: int
+    cancelled_by_business: int
+    no_shows: int
+    revenue_completed: int
+
+
+class SummaryOut(Schema):
+    range: str
+    from_date: date
+    to_date: date
+    totals: TotalsOut
+    previous_from: date
+    previous_to: date
+    previous: TotalsOut
+    cancellation_rate: float
+    no_show_rate: float
+    average_booking_value: int
+
+
+class TopServiceOut(Schema):
+    service_id: int
+    name: str
+    bookings: int
+    revenue: int
+
+
+class TimeseriesPointOut(Schema):
+    period_start: date
+    bookings_total: int
+    completed: int
+    cancelled_by_customer: int
+    cancelled_by_business: int
+    no_shows: int
+    revenue_completed: int
+
+
+class TimeseriesOut(Schema):
+    granularity: str
+    from_date: date
+    to_date: date
+    points: list[TimeseriesPointOut]
