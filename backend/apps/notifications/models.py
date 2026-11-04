@@ -57,9 +57,15 @@ class Notification(models.Model):
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     read_at = models.DateTimeField(null=True, blank=True)
+    admin_flagged = models.BooleanField(
+        default=False, help_text="Failed for good (no retry or fallback left): surfaced to admins"
+    )
 
     class Meta:
-        indexes = [models.Index(fields=["status", "created_at"])]
+        indexes = [
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["user", "channel", "-created_at"]),
+        ]
 
     def __str__(self) -> str:
         return f"{self.template_key}/{self.channel} {self.status}"
@@ -79,3 +85,22 @@ class Reminder(models.Model):
 
     def __str__(self) -> str:
         return f"{self.appointment_id}:{self.kind}"
+
+
+class NotificationPreference(models.Model):
+    """Per-user, per-event external channel choice (the in-app copy is always delivered)."""
+
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="+")
+    event_key = models.CharField(max_length=60)
+    sms = models.BooleanField(default=False)
+    email = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "event_key"], name="notification_preference_unique"
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_id}:{self.event_key}"

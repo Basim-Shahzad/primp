@@ -6,12 +6,19 @@ CUSTOMER_SMS = {
     "booking_received": "Primp: {business_name} received your booking for {services} on {date} at {time}. We will confirm shortly.",
     "booking_confirmed": "Primp: confirmed! {services} at {business_name}, {date} at {time}.",
     "booking_rescheduled": "Primp: your booking at {business_name} moved to {date} at {time}.",
-    "booking_cancelled": "Primp: {business_name} cancelled your booking on {date} at {time}. Sorry about that.",
-    "booking_reschedule_declined": "Primp: {business_name} could not move your booking; it stays on {date} at {time}.",
+    "booking_cancelled_by_business": "Primp: {business_name} cancelled your booking on {date} at {time}.{note_suffix} Sorry about that.",
+    "booking_rescheduled_by_business": "Primp: {business_name} moved your booking to {date} at {time}. Sorry for the change.",
+    "reschedule_request_accepted": "Primp: {business_name} accepted your new time: {date} at {time}.",
+    "reschedule_request_declined": "Primp: {business_name} could not move your booking; it stays on {date} at {time}.",
     "reminder_24h": "Reminder: {services} at {business_name} tomorrow, {date} at {time}.",
     "reminder_2h": "Reminder: {services} at {business_name} today at {time}. See you soon!",
     "review_prompt": "How was {business_name}? Rate your visit on Primp.",
     "onboarding_status_changed": "Primp: {business_name} is now {status}. {message}",
+    "new_booking": "Primp: new booking from {customer_name}: {services} on {date} at {time}.",
+    "booking_cancelled_by_customer": "Primp: {customer_name} cancelled {services} on {date} at {time}{late_note}.",
+    "provider_booking_rescheduled": "Primp: {customer_name} moved {services} to {date} at {time}.",
+    "provider_reschedule_requested": "Primp: {customer_name} asks to move {services} to {date} at {time}. Please respond.",
+    "new_review": "Primp: {customer_name} left a {rating}-star review for {business_name}.",
     "pending_escalation": "Primp: {customer_name} is waiting for you to accept {services} on {date} at {time}. Please respond.",
     "booking_reassigned": "Primp: your {services} at {business_name} on {date} at {time} is now with {staff_name}.",
 }
@@ -30,11 +37,19 @@ EMAIL = {
         "Your booking was rescheduled",
         "Hi {customer_name}, your booking at {business_name} is now on {date} at {time}.",
     ),
-    "booking_cancelled": (
+    "booking_cancelled_by_business": (
         "Your booking was cancelled",
-        "Hi {customer_name}, {business_name} cancelled your booking on {date} at {time}. We are sorry for the inconvenience.",
+        "Hi {customer_name}, {business_name} cancelled your booking on {date} at {time}.{note_suffix} We are sorry for the inconvenience.",
     ),
-    "booking_reschedule_declined": (
+    "booking_rescheduled_by_business": (
+        "Your booking was moved",
+        "Hi {customer_name}, {business_name} moved your booking to {date} at {time}. We are sorry for the change.",
+    ),
+    "reschedule_request_accepted": (
+        "Your new time was accepted",
+        "Hi {customer_name}, {business_name} accepted your request. Your booking is now on {date} at {time}.",
+    ),
+    "reschedule_request_declined": (
         "Reschedule request declined",
         "Hi {customer_name}, {business_name} could not accept the new time. Your booking stays on {date} at {time}.",
     ),
@@ -62,11 +77,15 @@ EMAIL = {
         "Your business status changed",
         "{business_name} is now {status}. {message}",
     ),
-    "provider_booking_created": (
+    "new_review": (
+        "New review",
+        "{customer_name} left a {rating}-star review for {business_name}.",
+    ),
+    "new_booking": (
         "New booking",
         "{customer_name} booked {services} on {date} at {time}.",
     ),
-    "provider_booking_cancelled": (
+    "booking_cancelled_by_customer": (
         "Booking cancelled",
         "{customer_name} cancelled {services} on {date} at {time}{late_note}.",
     ),

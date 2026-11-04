@@ -254,3 +254,14 @@ def staff_in_business(business_id: int, staff_id: int) -> Staff | None:
 
 def staff_service_ids(staff_id: int) -> list[int]:
     return list(StaffService.objects.filter(staff_id=staff_id).values_list("service_id", flat=True))
+
+
+@dataclass(frozen=True)
+class OwnerRef:
+    owner_id: int
+    name: str
+
+
+def owner_and_name(business_id: int) -> OwnerRef | None:
+    row = Business.objects.filter(pk=business_id).values("owner_id", "name").first()
+    return OwnerRef(row["owner_id"], row["name"]) if row else None

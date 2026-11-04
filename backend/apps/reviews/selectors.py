@@ -39,3 +39,15 @@ def reviewed_appointment_ids(appointment_ids: list[int]) -> set[int]:
             "appointment_id", flat=True
         )
     )
+
+
+@dataclass(frozen=True)
+class ReviewBrief:
+    business_id: int
+    customer_id: int
+    rating: int
+
+
+def review_brief(review_id: int) -> ReviewBrief | None:
+    row = Review.objects.filter(pk=review_id).values("business_id", "customer_id", "rating").first()
+    return ReviewBrief(**row) if row else None

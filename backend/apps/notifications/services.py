@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.accounts import selectors as accounts
 
+from . import preferences
 from .adapters import SMSDeliveryError, get_sms_adapter
 from .models import Channel, Notification, NotificationStatus, Reminder
 from .templating import MissingPlaceholder, TemplateNotFound, active_channels, render, render_text
@@ -31,9 +32,11 @@ CRITICAL_KEYS = {
     "otp",
     "booking_received",
     "booking_confirmed",
-    "booking_cancelled",
+    "booking_cancelled_by_business",
     "booking_rescheduled",
-    "booking_reschedule_declined",
+    "booking_rescheduled_by_business",
+    "reschedule_request_accepted",
+    "reschedule_request_declined",
     "booking_reassigned",
 }
 BULK_KEYS = {"review_prompt"}
@@ -78,7 +81,14 @@ def notify(
         return []
     available = active_channels(key)
     wanted: list[tuple[str, str]] = []
-    if include_sms and Channel.SMS in available and contact.phone:
+    if key in preferences.OWNER_EVENTS:
+        # owner-facing: the owner's own SMS/email toggles decide; in-app is always added below
+        want_sms, want_email = preferences.channels_for(user_id, key)
+        if want_sms and Channel.SMS in available and contact.phone:
+            wanted.append((Channel.SMS, contact.phone))
+        if want_email and Channel.EMAIL in available and contact.email:
+            wanted.append((Channel.EMAIL, contact.email))
+    elif include_sms and Channel.SMS in available and contact.phone:
         wanted.append((Channel.SMS, contact.phone))
     elif Channel.EMAIL in available and contact.email:
         wanted.append((Channel.EMAIL, contact.email))
@@ -99,9 +109,11 @@ def notify(
 
 
 def _fail(notification: Notification, error: str) -> str:
+    """Failed for good: flag it so admins see it (Plan 6.3 lists `admin_flagged` rows)."""
     notification.status = NotificationStatus.FAILED
     notification.last_error = error[:1000]
-    notification.save(update_fields=["status", "last_error", "attempts"])
+    notification.admin_flagged = True
+    notification.save(update_fields=["status", "last_error", "attempts", "admin_flagged"])
     return FAILED
 
 

@@ -33,7 +33,7 @@ def booked(run_commit, **business_kw):  # type: ignore[no-untyped-def]
 def test_instant_booking_notifies_customer_confirmation_and_provider(run_commit) -> None:  # type: ignore[no-untyped-def]
     b, user, _, _, _ = booked(run_commit)
     assert ("booking_confirmed", "sms") in keys() and ("booking_confirmed", "in_app") in keys()
-    assert ("provider_booking_created", "email") in keys()
+    assert ("new_booking", "email") in keys()
     assert ("booking_received", "sms") not in keys()
     assert len(FakeSMS.outbox) == 1 and FakeSMS.outbox[0].to == user.phone
     assert b.name in FakeSMS.outbox[0].body and "12:00" in FakeSMS.outbox[0].body
@@ -63,7 +63,7 @@ def test_customer_cancellation_notifies_provider_not_customer(run_commit) -> Non
     with run_commit():
         services.cancel_by_customer(user.pk, public_id, "price", now=NOW)
     new = list(Notification.objects.order_by("id")[before:].values_list("template_key", "user_id"))
-    assert {k for k, _ in new} == {"provider_booking_cancelled"} and {u for _, u in new} == {
+    assert {k for k, _ in new} == {"booking_cancelled_by_customer"} and {u for _, u in new} == {
         owner.pk
     }
     assert mail.outbox[-1].subject == "Booking cancelled"

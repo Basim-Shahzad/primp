@@ -335,7 +335,7 @@ def test_manual_booking_links_account_by_verified_phone_and_notifies(frozen, run
     assert r.json()["customer"]["user_id"] == str(user.public_id)
     assert r.json()["customer"]["name"] == "Real Customer"
     assert Notification.objects.filter(user=user, template_key="booking_confirmed").exists()
-    assert not Notification.objects.filter(template_key="provider_booking_created").exists()
+    assert not Notification.objects.filter(template_key="new_booking").exists()
 
 
 def test_manual_booking_does_not_link_unverified_phone(frozen) -> None:  # type: ignore[no-untyped-def]

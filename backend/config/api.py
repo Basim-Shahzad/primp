@@ -28,6 +28,7 @@ def register_routers() -> None:
     from apps.businesses import api as businesses_api
     from apps.businesses import api_provider as businesses_provider
     from apps.loyalty import api as loyalty_api
+    from apps.notifications import api_provider as notifications_provider
     from apps.payments import api as payments_api
     from apps.reviews import api as reviews_api
 
@@ -45,6 +46,7 @@ def register_routers() -> None:
     api.add_router("/payments", payments_api.router)
     api.add_router("/provider", businesses_provider.provider_router)
     api.add_router("/provider", bookings_provider.provider_router)
+    api.add_router("/provider", notifications_provider.provider_router)
     api.add_router("/files", businesses_provider.files_router)
 
 

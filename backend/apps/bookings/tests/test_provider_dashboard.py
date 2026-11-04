@@ -530,7 +530,9 @@ def test_decline_stores_reason_and_tells_customer(frozen, run_commit) -> None:  
     assert r.status_code == 200 and r.json()["status"] == "cancelled_by_business"
     a.refresh_from_db()
     assert a.cancellation_note == "Fully booked" and a.cancelled_at is not None
-    assert Notification.objects.filter(user=a.customer, template_key="booking_cancelled").exists()
+    assert Notification.objects.filter(
+        user=a.customer, template_key="booking_cancelled_by_business"
+    ).exists()
     assert (
         act(
             h, appt(b, svc, local(TUESDAY, 14), status="pending"), "decline", {"reason": "r" * 501}
@@ -555,7 +557,9 @@ def test_cancel_requires_reason_and_cancels_pending_reschedule(frozen, run_commi
     assert r.status_code == 200 and r.json()["cancellation_reason"] == "business"
     req.refresh_from_db()
     assert req.status == "cancelled"
-    assert Notification.objects.filter(user=a.customer, template_key="booking_cancelled").exists()
+    assert Notification.objects.filter(
+        user=a.customer, template_key="booking_cancelled_by_business"
+    ).exists()
 
 
 def test_cancel_frees_the_slot_publicly(frozen) -> None:  # type: ignore[no-untyped-def]
@@ -589,7 +593,9 @@ def test_owner_reschedule_updates_notifies_customer_only(frozen, run_commit) -> 
     pending.refresh_from_db()
     assert pending.status == "cancelled"
     assert AppointmentEvent.objects.filter(appointment=a, note="rescheduled by business").exists()
-    assert Notification.objects.filter(user=a.customer, template_key="booking_rescheduled").exists()
+    assert Notification.objects.filter(
+        user=a.customer, template_key="booking_rescheduled_by_business"
+    ).exists()
     assert not Notification.objects.filter(template_key="provider_booking_rescheduled").exists()
 
 
@@ -646,7 +652,9 @@ def test_accept_and_decline_customer_reschedule_requests(frozen, run_commit) -> 
     a.refresh_from_db()
     assert a.scheduled_start == local(TUESDAY, 15)
     assert RescheduleRequest.objects.get(appointment=a).status == "accepted"
-    assert Notification.objects.filter(user=a.customer, template_key="booking_rescheduled").exists()
+    assert Notification.objects.filter(
+        user=a.customer, template_key="reschedule_request_accepted"
+    ).exists()
     assert not Notification.objects.filter(template_key="provider_booking_rescheduled").exists()
     assert act(h, a, "reschedule-request/accept").json()["code"] == "no_pending_request"
 
@@ -661,7 +669,7 @@ def test_accept_and_decline_customer_reschedule_requests(frozen, run_commit) -> 
     c.refresh_from_db()
     assert req.status == "declined" and c.scheduled_start == local(TUESDAY, 17)
     assert Notification.objects.filter(
-        user=c.customer, template_key="booking_reschedule_declined"
+        user=c.customer, template_key="reschedule_request_declined"
     ).exists()
 
 
@@ -868,7 +876,7 @@ def test_auto_cancel_at_boundary_notifies_customer_once(settings, run_commit) ->
     )
     ev = AppointmentEvent.objects.get(appointment=a, to_status="cancelled_by_business")
     assert ev.actor_role == "system" and ev.actor_id is None
-    n = Notification.objects.filter(user=a.customer, template_key="booking_cancelled")
+    n = Notification.objects.filter(user=a.customer, template_key="booking_cancelled_by_business")
     assert n.filter(channel="in_app").count() == 1
 
 

@@ -71,6 +71,7 @@ class AppointmentBrief:
     is_late_cancellation: bool
     cancellation_reason: str
     payment_status: str = ""
+    cancellation_note: str = ""
 
     def payload(self) -> dict[str, Any]:
         """Values for notification templates, in the business timezone."""
@@ -85,6 +86,11 @@ class AppointmentBrief:
             "appointment_id": self.public_id,
             "late_note": " (late cancellation)" if self.is_late_cancellation else "",
             "reason": self.cancellation_reason.replace("_", " "),
+            "note_suffix": (
+                f" Reason: {self.cancellation_note}."
+                if self.cancellation_reason == "business" and self.cancellation_note
+                else ""
+            ),
         }
 
 
@@ -114,6 +120,7 @@ def appointment_brief(appointment_id: int) -> AppointmentBrief | None:
         is_late_cancellation=a.is_late_cancellation,
         cancellation_reason=a.cancellation_reason,
         payment_status=a.payment_status,
+        cancellation_note=a.cancellation_note,
     )
 
 

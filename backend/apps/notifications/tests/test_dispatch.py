@@ -39,6 +39,8 @@ PAYLOAD = {
     "code": "123456",
     "status": "pending",
     "message": "",
+    "note_suffix": "",
+    "rating": "5",
 }
 
 
@@ -63,7 +65,7 @@ def test_all_required_template_keys_seeded() -> None:
         "booking_received",
         "booking_confirmed",
         "booking_rescheduled",
-        "booking_cancelled",
+        "booking_cancelled_by_business",
         "reminder_24h",
         "reminder_2h",
         "review_prompt",
@@ -117,7 +119,7 @@ def test_notify_uses_email_when_no_phone(run_commit) -> None:  # type: ignore[no
 def test_notify_without_sms_flag_and_unknown_user(run_commit) -> None:  # type: ignore[no-untyped-def]
     user = make_customer(phone="+923001112222", email="a@example.com")
     with run_commit():
-        created = services.notify(user.pk, "provider_booking_created", PAYLOAD, include_sms=False)
+        created = services.notify(user.pk, "new_booking", PAYLOAD, include_sms=False)
     assert [n.channel for n in created] == ["email", "in_app"] and FakeSMS.outbox == []
     assert services.notify(999999, "booking_confirmed", PAYLOAD) == []
 

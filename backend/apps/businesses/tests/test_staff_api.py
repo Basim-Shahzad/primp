@@ -371,7 +371,8 @@ def test_deactivate_mixed_resolutions_in_one_transaction(frozen, run_commit) -> 
     # customers are told: reassigned template to one, cancellation to the other
     keys = {n.user_id: n.template_key for n in Notification.objects.exclude(channel="in_app")}
     assert (
-        keys[a1.customer_id] == "booking_reassigned" and keys[a2.customer_id] == "booking_cancelled"
+        keys[a1.customer_id] == "booking_reassigned"
+        and keys[a2.customer_id] == "booking_cancelled_by_business"
     )
     # the staff member vanishes from availability and the public listing at once
     cfg = selectors.get_booking_config_by_id(b.pk)

@@ -6,8 +6,12 @@ from typing import Any
 
 from django.conf import settings
 
+from apps.accounts import selectors as accounts
 from apps.bookings import events
 from apps.bookings import selectors as bookings
+from apps.businesses import selectors as biz
+from apps.reviews import events as review_events
+from apps.reviews import selectors as reviews
 
 from . import services
 
@@ -24,6 +28,21 @@ def _safe(handler: Callable[..., None]) -> Callable[..., None]:
             logger.exception(
                 "Notification handler failed", extra={"appointment_id": appointment_id}
             )
+            if settings.NOTIFICATIONS_RAISE_ON_RENDER_ERROR:
+                raise
+
+    return wrapper
+
+
+def _safe_kwargs(handler: Callable[..., None]) -> Callable[..., None]:
+    """Like `_safe` for events that do not carry an appointment id (reviews)."""
+
+    def wrapper(sender: Any, **kwargs: Any) -> None:
+        kwargs.pop("signal", None)
+        try:
+            handler(**kwargs)
+        except Exception:
+            logger.exception("Notification handler failed", extra={"handler": handler.__name__})
             if settings.NOTIFICATIONS_RAISE_ON_RENDER_ERROR:
                 raise
 
@@ -48,7 +67,7 @@ def on_created(appointment_id: int, source: str = "online", **_: Any) -> None:
         _to_customer(brief, "booking_received")
     if source == "manual":
         return  # the owner entered it themselves; no alert needed
-    services.notify(brief.owner_id, "provider_booking_created", brief.payload(), include_sms=False)
+    services.notify(brief.owner_id, "new_booking", brief.payload(), include_sms=False)
 
 
 def on_confirmed(appointment_id: int, **_: Any) -> None:
@@ -63,20 +82,46 @@ def on_cancelled(appointment_id: int, cancelled_by: str = "", **_: Any) -> None:
         return
     if cancelled_by == "customer":
         services.notify(
-            brief.owner_id, "provider_booking_cancelled", brief.payload(), include_sms=False
+            brief.owner_id, "booking_cancelled_by_customer", brief.payload(), include_sms=False
         )
     else:
-        _to_customer(brief, "booking_cancelled")
+        _to_customer(brief, "booking_cancelled_by_business")
 
 
-def on_rescheduled(appointment_id: int, by: str = "customer", **_: Any) -> None:
+def on_rescheduled(
+    appointment_id: int, by: str = "customer", accepted_request: bool = False, **_: Any
+) -> None:
     brief = _brief(appointment_id)
-    if brief:
-        _to_customer(brief, "booking_rescheduled")
-        if by == "customer":  # the owner already knows about their own moves
-            services.notify(
-                brief.owner_id, "provider_booking_rescheduled", brief.payload(), include_sms=False
-            )
+    if brief is None:
+        return
+    if by == "business":  # the owner already knows about their own moves
+        key = (
+            "reschedule_request_accepted" if accepted_request else "booking_rescheduled_by_business"
+        )
+        _to_customer(brief, key)
+        return
+    _to_customer(brief, "booking_rescheduled")
+    services.notify(
+        brief.owner_id, "provider_booking_rescheduled", brief.payload(), include_sms=False
+    )
+
+
+def on_review_created(review_id: int, business_id: int, customer_id: int, **_: Any) -> None:
+    review = reviews.review_brief(review_id)
+    owner = biz.owner_and_name(business_id)
+    if review is None or owner is None:
+        return
+    names = accounts.display_names([customer_id])
+    services.notify(
+        owner.owner_id,
+        "new_review",
+        {
+            "customer_name": names.get(customer_id, "A customer"),
+            "rating": str(review.rating),
+            "business_name": owner.name,
+        },
+        include_sms=False,
+    )
 
 
 def on_reschedule_requested(appointment_id: int, **_: Any) -> None:
@@ -90,7 +135,7 @@ def on_reschedule_requested(appointment_id: int, **_: Any) -> None:
 def on_reschedule_declined(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
-        _to_customer(brief, "booking_reschedule_declined")
+        _to_customer(brief, "reschedule_request_declined")
 
 
 def on_reassigned(appointment_id: int, **_: Any) -> None:
@@ -118,3 +163,8 @@ def connect() -> None:
     ]
     for signal, handler in wiring:
         signal.connect(_safe(handler), weak=False, dispatch_uid=f"notifications-{handler.__name__}")
+    review_events.review_created.connect(
+        _safe_kwargs(on_review_created),
+        weak=False,
+        dispatch_uid="notifications-on_review_created",
+    )
