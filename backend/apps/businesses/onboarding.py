@@ -391,7 +391,7 @@ def checklist(business: Business) -> Checklist:
 # ---------------------------------------------------------------- submission
 
 
-def _status_changed(business: Business, status: str, message: str = "") -> None:
+def notify_status_changed(business: Business, status: str, message: str = "") -> None:
     notifications.notify(
         business.owner_id,
         "onboarding_status_changed",
@@ -465,7 +465,7 @@ def submit(
             ip=ip,
         )
         events.emit(events.business_submitted, business.pk, submission=number)
-        _status_changed(business, VerificationStatus.PENDING)
+        notify_status_changed(business, VerificationStatus.PENDING)
     touch(business.pk)
     return business
 
