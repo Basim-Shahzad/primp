@@ -338,3 +338,69 @@ def _compute_next_slot(config: biz.BookingConfig, now: datetime) -> datetime | N
         if slots:
             return slots[0].start
     return None
+
+
+# ---------------------------------------------------------------- arbitrary windows
+
+OUTSIDE_HOURS = "outside_hours"
+BLOCKED = "blocked"
+CONFLICT = "conflict"
+
+
+def window_problems(
+    config: biz.BookingConfig,
+    start: datetime,
+    end: datetime,
+    staff_id: int | None,
+    *,
+    ignore_appointment_ids: frozenset[int] = frozenset(),
+    check_busy: bool = True,
+) -> list[str]:
+    """Why [start, end) cannot host an appointment (empty list: it is free).
+
+    Unlike `find_slot` this accepts any start (not only grid times) and ignores lead time and
+    advance limits, so it can validate owner-side moves and existing bookings. `check_busy=False`
+    only looks at working hours and blocks (used to find schedule conflicts).
+    """
+    tz = ZoneInfo(config.timezone)
+    local_start, local_end = start.astimezone(tz), end.astimezone(tz)
+    problems: list[str] = []
+    resource = staff_id if config.staff_level_booking else None
+
+    windows = biz.opening_windows(config.id, local_start.weekday())
+    shifts = _resource_windows(windows, resource) if resource is not None else windows.get(None, [])
+    fits = local_start.date() == local_end.date() and any(
+        opens <= local_start.time() and local_end.time() <= closes for opens, closes in shifts
+    )
+    if not fits:
+        problems.append(OUTSIDE_HOURS)
+
+    for c_staff, _c_start, _c_end in biz.closures_overlapping(config.id, start, end):
+        if c_staff is None or c_staff == resource:
+            problems.append(BLOCKED)
+            break
+
+    if check_busy:
+        buffer = timedelta(minutes=config.buffer_minutes)
+        lo, hi = start - buffer, end + buffer
+        busy = [
+            (sid, s, e)
+            for sid, s, e in Appointment.objects.filter(
+                business_id=config.id,
+                status__in=ACTIVE_STATUSES,
+                scheduled_start__lt=hi,
+                scheduled_end__gt=lo,
+            )
+            .exclude(pk__in=ignore_appointment_ids)
+            .values_list("staff_id", "scheduled_start", "scheduled_end")
+        ]
+        held = [(h.staff_id, h.start, h.end) for h in hold_store.active_holds(config.id, lo, hi)]
+        if resource is not None:
+            clashes = sum(1 for sid, _s, _e in busy + held if sid == resource)
+            capacity = 1
+        else:
+            clashes = len(busy) + len(held)
+            capacity = config.parallel_capacity
+        if clashes >= capacity:
+            problems.append(CONFLICT)
+    return problems

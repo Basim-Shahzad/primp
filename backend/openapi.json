@@ -24,6 +24,24 @@
         "title": "ActionsOut",
         "type": "object"
       },
+      "ApplyOut": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "reassigned": {
+            "title": "Reassigned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reassigned",
+          "cancelled"
+        ],
+        "title": "ApplyOut",
+        "type": "object"
+      },
       "AppointmentDetailOut": {
         "properties": {
           "actions": {
@@ -1026,6 +1044,20 @@
         "title": "DaySchema",
         "type": "object"
       },
+      "DeactivateIn": {
+        "properties": {
+          "resolutions": {
+            "items": {
+              "$ref": "#/components/schemas/ResolutionIn"
+            },
+            "maxItems": 500,
+            "title": "Resolutions",
+            "type": "array"
+          }
+        },
+        "title": "DeactivateIn",
+        "type": "object"
+      },
       "DeletionIn": {
         "properties": {
           "reason": {
@@ -1335,6 +1367,71 @@
           "days"
         ],
         "title": "HoursOut",
+        "type": "object"
+      },
+      "ImpactItemOut": {
+        "properties": {
+          "appointment_id": {
+            "format": "uuid",
+            "title": "Appointment Id",
+            "type": "string"
+          },
+          "customer_name": {
+            "title": "Customer Name",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "services": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Services",
+            "type": "array"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "appointment_id",
+          "status",
+          "start",
+          "end",
+          "customer_name",
+          "services"
+        ],
+        "title": "ImpactItemOut",
+        "type": "object"
+      },
+      "ImpactOut": {
+        "properties": {
+          "appointments": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactItemOut"
+            },
+            "title": "Appointments",
+            "type": "array"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count",
+          "appointments"
+        ],
+        "title": "ImpactOut",
         "type": "object"
       },
       "LocationOut": {
@@ -2368,6 +2465,40 @@
         "title": "RescheduleRequestOut",
         "type": "object"
       },
+      "ResolutionIn": {
+        "properties": {
+          "action": {
+            "enum": [
+              "reassign",
+              "cancel"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "appointment_id": {
+            "format": "uuid",
+            "title": "Appointment Id",
+            "type": "string"
+          },
+          "new_staff_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Staff Id"
+          }
+        },
+        "required": [
+          "appointment_id",
+          "action"
+        ],
+        "title": "ResolutionIn",
+        "type": "object"
+      },
       "ReviewCreateIn": {
         "properties": {
           "comment": {
@@ -3301,15 +3432,52 @@
         "title": "SlotOut",
         "type": "object"
       },
+      "StaffIn": {
+        "properties": {
+          "bio": {
+            "default": "",
+            "maxLength": 1000,
+            "title": "Bio",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "service_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Service Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "StaffIn",
+        "type": "object"
+      },
       "StaffOut": {
         "properties": {
           "bio": {
             "title": "Bio",
             "type": "string"
           },
+          "has_hours_override": {
+            "title": "Has Hours Override",
+            "type": "boolean"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
           },
           "name": {
             "title": "Name",
@@ -3337,11 +3505,55 @@
         "required": [
           "id",
           "name",
-          "photo_url",
           "bio",
-          "service_ids"
+          "photo_url",
+          "is_active",
+          "service_ids",
+          "has_hours_override"
         ],
         "title": "StaffOut",
+        "type": "object"
+      },
+      "StaffPatchIn": {
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 150,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "StaffPatchIn",
         "type": "object"
       },
       "StaffRefOut": {
@@ -3360,6 +3572,31 @@
           "name"
         ],
         "title": "StaffRefOut",
+        "type": "object"
+      },
+      "StaffServicesIn": {
+        "properties": {
+          "resolutions": {
+            "items": {
+              "$ref": "#/components/schemas/ResolutionIn"
+            },
+            "maxItems": 500,
+            "title": "Resolutions",
+            "type": "array"
+          },
+          "service_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 200,
+            "title": "Service Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "service_ids"
+        ],
+        "title": "StaffServicesIn",
         "type": "object"
       },
       "StarterItemOut": {
@@ -6085,6 +6322,94 @@
         ]
       }
     },
+    "/api/v1/provider/businesses/{business_id}/staff": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_list_staff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Staff",
+        "tags": [
+          "provider"
+        ]
+      },
+      "post": {
+        "operationId": "apps_businesses_api_provider_create_staff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Staff",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
     "/api/v1/provider/businesses/{business_id}/submit": {
       "post": {
         "operationId": "apps_businesses_api_provider_submit_business",
@@ -6240,6 +6565,347 @@
           }
         ],
         "summary": "Patch Service",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}": {
+      "patch": {
+        "operationId": "apps_businesses_api_provider_patch_staff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Patch Staff",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}/deactivate": {
+      "post": {
+        "operationId": "apps_bookings_api_provider_deactivate_staff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Deactivate Staff",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}/hours": {
+      "get": {
+        "operationId": "apps_businesses_api_provider_get_staff_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoursOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Staff Hours",
+        "tags": [
+          "provider"
+        ]
+      },
+      "put": {
+        "operationId": "apps_businesses_api_provider_put_staff_hours",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoursIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoursOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Put Staff Hours",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}/impact": {
+      "get": {
+        "operationId": "apps_bookings_api_provider_staff_impact_view",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "action",
+            "required": true,
+            "schema": {
+              "enum": [
+                "deactivate",
+                "remove_services"
+              ],
+              "title": "Action",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "service_ids",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Service Ids",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Staff Impact View",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}/photo": {
+      "post": {
+        "operationId": "apps_businesses_api_provider_upload_staff_photo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "title": "File",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "title": "FileParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Upload Staff Photo",
+        "tags": [
+          "provider"
+        ]
+      }
+    },
+    "/api/v1/provider/staff/{staff_id}/services": {
+      "put": {
+        "operationId": "apps_bookings_api_provider_put_staff_services",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "staff_id",
+            "required": true,
+            "schema": {
+              "title": "Staff Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffServicesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Put Staff Services",
         "tags": [
           "provider"
         ]

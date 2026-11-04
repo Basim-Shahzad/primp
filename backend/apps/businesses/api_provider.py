@@ -3,6 +3,7 @@
 import uuid
 from typing import Any
 
+from django.core.files.storage import default_storage
 from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Router, Status, UploadedFile
 from pydantic import BaseModel
@@ -16,7 +17,8 @@ from apps.core.permissions import require_role
 
 from . import documents, hours, media, menu, onboarding, profile, selectors
 from . import page as page_service
-from .models import Business, Closure, Service
+from . import staff as staff_mod
+from .models import Business, Closure, Service, Staff
 from .provider_schemas import (
     BookingSettingsIn,
     BookingSettingsOut,
@@ -39,6 +41,9 @@ from .provider_schemas import (
     ServiceOut,
     ServicePatchIn,
     ShiftSchema,
+    StaffIn,
+    StaffOut,
+    StaffPatchIn,
     StarterItemOut,
     SubmitIn,
 )
@@ -335,16 +340,20 @@ def remove_service(request: HttpRequest, service_id: int) -> ServiceDeleteOut:
 # ---- weekly hours ----
 
 
-def hours_out(business_id: int) -> HoursOut:
+def week_out(week: list[hours.DayShifts]) -> HoursOut:
     return HoursOut(
         days=[
             DaySchema(
                 weekday=d.weekday,
                 shifts=[ShiftSchema(opens_at=o, closes_at=c) for o, c in d.shifts],
             )
-            for d in hours.week_of(business_id, None)
+            for d in week
         ]
     )
+
+
+def hours_out(business_id: int) -> HoursOut:
+    return week_out(hours.week_of(business_id, None))
 
 
 @provider_router.get("/businesses/{business_id}/hours", response=HoursOut)
@@ -432,3 +441,76 @@ def patch_booking_settings(
     changes = partial(payload)
     business = profile.update_booking_settings(user.pk, str(business_id), changes)
     return settings_out(business)
+
+
+# ---- staff ----
+
+
+def staff_outs(rows: list[Staff]) -> list[StaffOut]:
+    ids = [s.pk for s in rows]
+    links = staff_mod.service_ids_by_staff(ids)
+    overrides = staff_mod.staff_with_override(ids)
+    return [
+        StaffOut(
+            id=s.pk,
+            name=s.name,
+            bio=s.bio,
+            photo_url=str(default_storage.url(s.photo)) if s.photo else None,
+            is_active=s.is_active,
+            service_ids=links.get(s.pk, []),
+            has_hours_override=s.pk in overrides,
+        )
+        for s in rows
+    ]
+
+
+@provider_router.get("/businesses/{business_id}/staff", response=list[StaffOut])
+def list_staff(request: HttpRequest, business_id: uuid.UUID) -> list[StaffOut]:
+    user = owner_only(request)
+    return staff_outs(staff_mod.list_staff(user.pk, str(business_id)))
+
+
+@provider_router.post("/businesses/{business_id}/staff", response={201: StaffOut})
+def create_staff(
+    request: HttpRequest, business_id: uuid.UUID, payload: StaffIn
+) -> Status[StaffOut]:
+    user = owner_only(request)
+    staff = staff_mod.create_staff(
+        user.pk,
+        str(business_id),
+        name=payload.name,
+        bio=payload.bio,
+        service_ids=payload.service_ids,
+    )
+    return Status(201, staff_outs([staff])[0])
+
+
+@provider_router.patch("/staff/{staff_id}", response=StaffOut)
+def patch_staff(request: HttpRequest, staff_id: int, payload: StaffPatchIn) -> StaffOut:
+    user = owner_only(request)
+    changes = partial(payload)
+    return staff_outs([staff_mod.update_staff(user.pk, staff_id, changes)])[0]
+
+
+@provider_router.post("/staff/{staff_id}/photo", response=StaffOut)
+def upload_staff_photo(request: HttpRequest, staff_id: int, file: File[UploadedFile]) -> StaffOut:
+    user = owner_only(request)
+    _throttle_upload(user.pk)
+    return staff_outs([staff_mod.set_photo(user.pk, staff_id, file.read())])[0]
+
+
+@provider_router.get("/staff/{staff_id}/hours", response=HoursOut)
+def get_staff_hours(request: HttpRequest, staff_id: int) -> HoursOut:
+    user = owner_only(request)
+    return week_out(staff_mod.get_hours(user.pk, staff_id))
+
+
+@provider_router.put("/staff/{staff_id}/hours", response=HoursOut)
+def put_staff_hours(request: HttpRequest, staff_id: int, payload: HoursIn) -> HoursOut:
+    user = owner_only(request)
+    week = [
+        hours.DayShifts(d.weekday, [(s.opens_at, s.closes_at) for s in d.shifts])
+        for d in payload.days
+    ]
+    staff = staff_mod.set_hours(user.pk, staff_id, week)
+    return week_out(hours.week_of(staff.business_id, staff.pk))

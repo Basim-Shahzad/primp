@@ -84,6 +84,12 @@ def on_reschedule_declined(appointment_id: int, **_: Any) -> None:
         services.notify(brief.customer_id, "booking_reschedule_declined", brief.payload())
 
 
+def on_reassigned(appointment_id: int, **_: Any) -> None:
+    brief = _brief(appointment_id)
+    if brief:
+        services.notify(brief.customer_id, "booking_reassigned", brief.payload())
+
+
 def on_completed(appointment_id: int, **_: Any) -> None:
     brief = _brief(appointment_id)
     if brief:
@@ -99,6 +105,7 @@ def connect() -> None:
         (events.booking_reschedule_requested, on_reschedule_requested),
         (events.booking_reschedule_declined, on_reschedule_declined),
         (events.booking_completed, on_completed),
+        (events.booking_reassigned, on_reassigned),
     ]
     for signal, handler in wiring:
         signal.connect(_safe(handler), weak=False, dispatch_uid=f"notifications-{handler.__name__}")

@@ -17,3 +17,6 @@ booking_payment_changed = Signal()
 
 def emit(signal: Signal, appointment_id: int, **kwargs: object) -> None:
     transaction.on_commit(lambda: signal.send(sender=None, appointment_id=appointment_id, **kwargs))
+
+
+booking_reassigned = Signal()  # also sends `old_staff_id`

@@ -246,3 +246,11 @@ def starter_menu(category_id: int) -> list[StarterMenuItem]:
     return list(
         StarterMenuItem.objects.filter(category_id__in=category_ids_with_descendants(category_id))
     )
+
+
+def staff_in_business(business_id: int, staff_id: int) -> Staff | None:
+    return Staff.objects.filter(pk=staff_id, business_id=business_id).first()
+
+
+def staff_service_ids(staff_id: int) -> list[int]:
+    return list(StaffService.objects.filter(staff_id=staff_id).values_list("service_id", flat=True))

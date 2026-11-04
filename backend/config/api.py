@@ -24,6 +24,7 @@ def register_routers() -> None:
     """Mount every app router. Imports are local so apps load before their routers."""
     from apps.accounts import api as accounts_api
     from apps.bookings import api as bookings_api
+    from apps.bookings import api_provider as bookings_provider
     from apps.businesses import api as businesses_api
     from apps.businesses import api_provider as businesses_provider
     from apps.loyalty import api as loyalty_api
@@ -43,6 +44,7 @@ def register_routers() -> None:
     api.add_router("/reviews", reviews_api.reviews_router)
     api.add_router("/payments", payments_api.router)
     api.add_router("/provider", businesses_provider.provider_router)
+    api.add_router("/provider", bookings_provider.provider_router)
     api.add_router("/files", businesses_provider.files_router)
 
 

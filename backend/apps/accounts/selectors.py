@@ -56,3 +56,13 @@ def profile_is_complete(user_id: int) -> bool:
     if profile is None or not profile.name or not profile.photo or profile.default_city_id is None:
         return False
     return user.is_phone_verified or user.is_email_verified
+
+
+def full_names(user_ids: list[int]) -> dict[int, str]:
+    """Complete profile names (for the business owner's own bookings view)."""
+    return {
+        user_id: name or "Customer"
+        for user_id, name in CustomerProfile.objects.filter(user_id__in=user_ids).values_list(
+            "user_id", "name"
+        )
+    }

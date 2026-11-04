@@ -263,3 +263,28 @@ class BookingSettingsOut(Schema):
     buffer_minutes: int
     staff_level_booking: bool
     parallel_capacity: int
+
+
+# ---- staff ----
+
+
+class StaffIn(Schema):
+    name: Text150
+    bio: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] = ""
+    service_ids: list[int] = Field(default_factory=list, max_length=200)
+
+
+class StaffPatchIn(Schema):
+    name: Text150 | None = None
+    bio: Annotated[str, StringConstraints(strip_whitespace=True, max_length=1000)] | None = None
+    is_active: bool | None = None
+
+
+class StaffOut(Schema):
+    id: int
+    name: str
+    bio: str
+    photo_url: str | None
+    is_active: bool
+    service_ids: list[int]
+    has_hours_override: bool

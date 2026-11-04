@@ -1,0 +1,9 @@
+# ADR-014: Staff changes with an impact workflow
+
+- **Affected appointments** = future (`scheduled_start > now`) `pending`/`confirmed` appointments assigned to the staff member; for service removal only those containing a removed service. Past, completed, cancelled and no-show bookings are never touched.
+- **All-or-nothing**: `deactivate` and `PUT /staff/{id}/services` (when it removes services) require a resolution for every affected appointment (`reassign` with `new_staff_id`, or `cancel`). Missing ids -> 422 `unresolved_appointments` with the ids in `fields.resolutions`; unknown or repeated ids -> 422. Everything runs in one transaction, so any failure (e.g. a conflicting reassignment -> 409 `slot_unavailable`) leaves bookings and staff unchanged and sends no notifications.
+- **Reassignment checks** the new staff member is active, in the same business, not the one being changed, can perform *every* booked service (422 `staff_cannot_perform`), works at that time and is not blocked (422 `staff_unavailable`), and is not busy (409). It uses `availability.window_problems`, which accepts any start time (not only grid times) and ignores lead time and advance limits so existing bookings can be moved. The Postgres exclusion constraint remains the last line of defence.
+- **Locking order** is the same as customer booking (business row, then staff row), so a reassignment and a concurrent booking or a second owner edit serialise; one wins, the other gets 409.
+- **Customers are told** through the existing events: `booking_reassigned` (new template, critical queue) or `booking_cancelled` (cancelled by business, with reason "Staff member no longer available").
+- Staff-level booking toggled off: staff-specific bookings are kept; availability counts every active appointment against the capacity, so those bookings still occupy capacity.
+- No staff logins in the MVP (Phase 2).

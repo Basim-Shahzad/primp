@@ -34,6 +34,7 @@ CRITICAL_KEYS = {
     "booking_cancelled",
     "booking_rescheduled",
     "booking_reschedule_declined",
+    "booking_reassigned",
 }
 BULK_KEYS = {"review_prompt"}
 
