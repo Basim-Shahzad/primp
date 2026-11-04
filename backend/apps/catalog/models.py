@@ -16,6 +16,8 @@ class Category(TimeStampedModel):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     icon = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=300, blank=True)
+    version = models.PositiveIntegerField(default=1)
     sort_order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
