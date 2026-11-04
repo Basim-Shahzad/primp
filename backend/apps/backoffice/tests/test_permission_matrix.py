@@ -5,7 +5,7 @@ from django.test import Client
 
 from apps.backoffice import permissions
 from apps.backoffice.tests.helpers import ROLES, A, call, headers_for, user_for
-from apps.backoffice.tests.matrix import ENDPOINTS, PUBLIC, fill
+from apps.backoffice.tests.matrix import ENDPOINTS, PUBLIC, UPLOADS, fill
 from config.api import api
 
 pytestmark = pytest.mark.django_db
@@ -22,7 +22,7 @@ def documented() -> set[tuple[str, str]]:
 
 
 def test_every_admin_endpoint_is_in_the_matrix() -> None:
-    known = set(ENDPOINTS) | PUBLIC
+    known = set(ENDPOINTS) | PUBLIC | set(UPLOADS)
     assert documented() - known == set(), "add new admin endpoints to tests/matrix.py"
     assert known - documented() == set(), "stale entries in tests/matrix.py"
 
@@ -72,3 +72,24 @@ def test_login_endpoint_is_the_only_public_admin_route() -> None:
     assert r.status_code == 422  # reaches validation: no token needed
     for method, template in ENDPOINTS:
         assert request(method, template, {}).status_code == 401
+
+
+def send_upload(method: str, template: str, headers: dict[str, str]):  # type: ignore[no-untyped-def]
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    file = SimpleUploadedFile("f.csv", b"name,slug,lat,lng,is_pilot\n", content_type="text/csv")
+    return Client().post(f"{PREFIX}{fill(template)}", {"file": file}, **headers)
+
+
+@pytest.mark.parametrize("role", ROLES)
+@pytest.mark.parametrize(("method", "template"), sorted(UPLOADS))
+def test_upload_endpoints_by_role(method: str, template: str, role: str) -> None:
+    permission = UPLOADS[(method, template)]
+    user = user_for(role)
+    response = send_upload(method, template, headers_for(user))
+    code = response.json().get("code", "")
+    if permission in permissions.permissions_of(user):
+        assert response.status_code not in (401,) and code != "permission_denied"
+    else:
+        assert response.status_code == 403 and code == "permission_denied"
+    assert send_upload(method, template, {}).status_code == 401

@@ -623,6 +623,246 @@
         "title": "ApproveIn",
         "type": "object"
       },
+      "AreaIn": {
+        "properties": {
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "is_pilot": {
+            "default": false,
+            "title": "Is Pilot",
+            "type": "boolean"
+          },
+          "lat": {
+            "maximum": 90,
+            "minimum": -90,
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "maximum": 180,
+            "minimum": -180,
+            "title": "Lng",
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          }
+        },
+        "required": [
+          "name",
+          "lat",
+          "lng"
+        ],
+        "title": "AreaIn",
+        "type": "object"
+      },
+      "AreaOut": {
+        "properties": {
+          "city_id": {
+            "title": "City Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "is_pilot": {
+            "title": "Is Pilot",
+            "type": "boolean"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "listed_businesses": {
+            "title": "Listed Businesses",
+            "type": "integer"
+          },
+          "lng": {
+            "title": "Lng",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "city_id",
+          "name",
+          "slug",
+          "lat",
+          "lng",
+          "polygon",
+          "is_pilot",
+          "is_active",
+          "version",
+          "listed_businesses"
+        ],
+        "title": "AreaOut",
+        "type": "object"
+      },
+      "AreaPatchIn": {
+        "properties": {
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "is_pilot": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Pilot"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "polygon": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Polygon"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "AreaPatchIn",
+        "type": "object"
+      },
       "AreaRefOut": {
         "properties": {
           "id": {
@@ -1498,6 +1738,219 @@
           "missing"
         ],
         "title": "ChecklistItemOut",
+        "type": "object"
+      },
+      "CityIn": {
+        "properties": {
+          "is_active": {
+            "default": true,
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "lat": {
+            "maximum": 90,
+            "minimum": -90,
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "maximum": 180,
+            "minimum": -180,
+            "title": "Lng",
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "visibility": {
+            "default": "hidden",
+            "enum": [
+              "hidden",
+              "preview",
+              "public"
+            ],
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "lat",
+          "lng"
+        ],
+        "title": "CityIn",
+        "type": "object"
+      },
+      "CityOut": {
+        "properties": {
+          "area_count": {
+            "title": "Area Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "listed_businesses": {
+            "title": "Listed Businesses",
+            "type": "integer"
+          },
+          "lng": {
+            "title": "Lng",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "lat",
+          "lng",
+          "visibility",
+          "is_active",
+          "version",
+          "area_count",
+          "listed_businesses"
+        ],
+        "title": "CityOut",
+        "type": "object"
+      },
+      "CityPatchIn": {
+        "properties": {
+          "force": {
+            "default": false,
+            "title": "Force",
+            "type": "boolean"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "visibility": {
+            "anyOf": [
+              {
+                "enum": [
+                  "hidden",
+                  "preview",
+                  "public"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "CityPatchIn",
         "type": "object"
       },
       "CityRefOut": {
@@ -2531,6 +2984,19 @@
           "appointments"
         ],
         "title": "ImpactOut",
+        "type": "object"
+      },
+      "ImportOut": {
+        "properties": {
+          "imported": {
+            "title": "Imported",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported"
+        ],
+        "title": "ImportOut",
         "type": "object"
       },
       "InfoIn": {
@@ -7763,6 +8229,319 @@
           }
         ],
         "summary": "Deactivate Category",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/cities": {
+      "get": {
+        "operationId": "apps_backoffice_api_geo_list_cities",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CityOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "List Cities",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "apps_backoffice_api_geo_create_city",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Create City",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/cities/{city_id}": {
+      "patch": {
+        "operationId": "apps_backoffice_api_geo_patch_city",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "city_id",
+            "required": true,
+            "schema": {
+              "title": "City Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CityPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CityOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Patch City",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/cities/{city_id}/areas": {
+      "get": {
+        "operationId": "apps_backoffice_api_geo_list_areas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "city_id",
+            "required": true,
+            "schema": {
+              "title": "City Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AreaOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "List Areas",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "apps_backoffice_api_geo_create_area",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "city_id",
+            "required": true,
+            "schema": {
+              "title": "City Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Create Area",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/cities/{city_id}/areas/import": {
+      "post": {
+        "operationId": "apps_backoffice_api_geo_import_areas",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "city_id",
+            "required": true,
+            "schema": {
+              "title": "City Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "title": "File",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "title": "FileParams",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Import Areas",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/cities/{city_id}/areas/{area_id}": {
+      "patch": {
+        "operationId": "apps_backoffice_api_geo_patch_area",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "city_id",
+            "required": true,
+            "schema": {
+              "title": "City Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "area_id",
+            "required": true,
+            "schema": {
+              "title": "Area Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Patch Area",
         "tags": [
           "admin"
         ]

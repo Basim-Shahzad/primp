@@ -94,9 +94,27 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         {"version": 1},
         "",
     ),
+    ("get", "/admin/cities"): ("geo.manage", None, ""),
+    ("post", "/admin/cities"): ("geo.manage", {"name": "City", "lat": 24.0, "lng": 67.0}, ""),
+    ("patch", "/admin/cities/{city_id}"): ("geo.manage", {"version": 1, "name": "X"}, ""),
+    ("get", "/admin/cities/{city_id}/areas"): ("geo.manage", None, ""),
+    ("post", "/admin/cities/{city_id}/areas"): (
+        "geo.manage",
+        {"name": "Area", "lat": 24.0, "lng": 67.0},
+        "",
+    ),
+    ("patch", "/admin/cities/{city_id}/areas/{area_id}"): (
+        "geo.manage",
+        {"version": 1, "name": "X"},
+        "",
+    ),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}
+# multipart uploads need a file to get past validation; the matrix test sends one
+UPLOADS: dict[tuple[str, str], str] = {
+    ("post", "/admin/cities/{city_id}/areas/import"): "geo.manage",
+}
 
 
 def fill(template: str) -> str:
