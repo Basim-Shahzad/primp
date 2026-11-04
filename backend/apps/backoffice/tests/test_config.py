@@ -374,3 +374,45 @@ def test_two_admins_changing_the_same_setting_one_wins(frozen, long_tokens) -> N
     assert sorted(codes) == [200, 409]
     assert PlatformSetting.objects.get(key="slot_hold_seconds").version == 1
     assert PlatformSettingHistory.objects.count() == 1 and len(audit()) == 1
+
+
+# ------------------------------------------------- changes reach the running code
+
+
+def test_changes_take_effect_without_a_restart() -> None:
+    from datetime import UTC, datetime
+
+    from apps.accounts import otp
+    from apps.bookings import holds
+    from apps.loyalty.services import expiry_from
+    from apps.notifications import services as notifications
+
+    _, h = boss()
+    now = datetime(2030, 1, 1, tzinfo=UTC)
+    before_expiry = expiry_from(now)
+    assert holds.hold_ttl_seconds() == 300
+    assert patch(h, "slot_hold_seconds", 600).status_code == 200
+    assert holds.hold_ttl_seconds() == 600
+
+    limits = {**otp.limits(), "ttl_seconds": 120}
+    assert patch(h, "otp_limits", limits).status_code == 200
+    assert otp.limits()["ttl_seconds"] == 120
+
+    assert patch(h, "points_expiry_months", 6).status_code == 200
+    assert expiry_from(now) < before_expiry
+
+    offsets = {"reminder_24h": 90000, "reminder_2h": 3600}
+    r = patch(h, "reminder_offsets", offsets)
+    assert r.status_code == 200
+    assert notifications.reminder_offsets() == offsets
+
+
+def test_ticket_priorities_and_default_notice_follow_the_setting() -> None:
+    from apps.backoffice.services import tickets
+
+    _, h = boss()
+    base = dict(config_service.get("auto_ticket_priorities"))
+    assert patch(h, "auto_ticket_priorities", {**base, "other": "urgent"}).status_code == 200
+    assert tickets.default_priority("other") == "urgent"
+    assert patch(h, "default_cancellation_notice_hours", 6).status_code == 200
+    assert config_service.get("default_cancellation_notice_hours") == 6

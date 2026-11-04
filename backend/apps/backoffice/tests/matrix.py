@@ -153,6 +153,19 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
     ("get", "/admin/config"): ("config.manage", None, ""),
     ("patch", "/admin/config/{key}"): ("config.manage", {"value": 400, "version": 0}, ""),
     ("get", "/admin/config/{key}/history"): ("config.manage", None, ""),
+    ("get", "/admin/notification-templates"): ("config.manage", None, ""),
+    ("post", "/admin/notification-templates/{template_id}/preview"): (
+        "config.manage",
+        {"body": "hi"},
+        "",
+    ),
+    ("patch", "/admin/notification-templates/{template_id}"): (
+        "config.manage",
+        {"version": 1, "body": "hi"},
+        "",
+    ),
+    ("get", "/admin/point-rules"): ("config.manage", None, ""),
+    ("patch", "/admin/point-rules/{rule_id}"): ("config.manage", {"version": 1}, ""),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}
