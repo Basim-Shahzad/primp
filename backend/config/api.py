@@ -23,7 +23,14 @@ register_exception_handlers(api)
 def register_routers() -> None:
     """Mount every app router. Imports are local so apps load before their routers."""
     from apps.accounts import api as accounts_api
-    from apps.backoffice import api_admin, api_geo, api_listings, api_taxonomy, api_users
+    from apps.backoffice import (
+        api_admin,
+        api_geo,
+        api_listings,
+        api_taxonomy,
+        api_tickets,
+        api_users,
+    )
     from apps.bookings import api as bookings_api
     from apps.bookings import api_provider as bookings_provider
     from apps.businesses import api as businesses_api
@@ -55,6 +62,8 @@ def register_routers() -> None:
     api.add_router("/admin", api_listings.router)
     api.add_router("/admin", api_taxonomy.router)
     api.add_router("/admin", api_geo.router)
+    api.add_router("/admin", api_tickets.router)
+    api.add_router("/tickets", api_tickets.user_router)
     api.add_router("/files", businesses_provider.files_router)
 
 

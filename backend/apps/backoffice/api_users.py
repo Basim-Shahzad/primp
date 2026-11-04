@@ -33,6 +33,7 @@ from .schemas_users import (
     UserPage,
     UserQuery,
 )
+from .services import tickets as tickets_service
 from .services import users as service
 
 router = Router(tags=["admin"], auth=admin_auth)
@@ -91,7 +92,10 @@ def detail_of(user: Any) -> UserDetail:
         recent_bookings=booking.recent,
         reviews=reviews.customer_reviews(user.pk),
         points=loyalty.points_overview(user.pk),
-        tickets=[],
+        tickets=[
+            {"id": str(t.public_id), "type": t.type, "status": t.status, "subject": t.subject}
+            for t in tickets_service.own_tickets(user.pk, None)[:10]
+        ],
         login_history=[
             LoginRow(at=r.created_at, ip=r.ip_address, user_agent=r.user_agent)
             for r in accounts.login_history(user.pk)

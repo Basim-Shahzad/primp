@@ -108,6 +108,23 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         {"version": 1, "name": "X"},
         "",
     ),
+    ("get", "/admin/tickets"): ("tickets.view", None, ""),
+    ("get", "/admin/tickets/stats"): ("tickets.view", None, ""),
+    ("get", "/admin/tickets/{ticket_id}"): ("tickets.view", None, ""),
+    ("post", "/admin/tickets/{ticket_id}/assign"): (
+        "tickets.handle",
+        {"version": 1, "assignee_id": None},
+        "",
+    ),
+    ("post", "/admin/tickets/{ticket_id}/status"): (
+        "tickets.handle",
+        {"version": 1, "status": "in_progress"},
+        "",
+    ),
+    ("post", "/admin/tickets/{ticket_id}/messages"): ("tickets.handle", {"body": "hi"}, ""),
+    ("post", "/admin/reviews/{review_id}/hide"): ("reviews.moderate", REASON, ""),
+    ("post", "/admin/reviews/{review_id}/restore"): ("reviews.moderate", REASON, ""),
+    ("post", "/admin/reviews/{review_id}/remove"): ("reviews.moderate", REASON, ""),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}

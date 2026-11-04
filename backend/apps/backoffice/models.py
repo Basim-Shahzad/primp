@@ -121,3 +121,107 @@ class ReviewNote(models.Model):
 
     def __str__(self) -> str:
         return f"note on {self.item_id}"
+
+
+class TicketType(models.TextChoices):
+    BOOKING_DISPUTE = "booking_dispute", _("Booking dispute")
+    REFUND_REQUEST = "refund_request", _("Refund request")
+    FLAGGED_REVIEW = "flagged_review", _("Flagged review")
+    PROVIDER_COMPLAINT = "provider_complaint", _("Provider complaint")
+    ACCOUNT_ISSUE = "account_issue", _("Account issue")
+    FAILED_NOTIFICATION = "failed_notification", _("Failed notification")
+    OTHER = "other", _("Other")
+
+
+class TicketPriority(models.TextChoices):
+    LOW = "low", _("Low")
+    NORMAL = "normal", _("Normal")
+    HIGH = "high", _("High")
+    URGENT = "urgent", _("Urgent")
+
+
+class TicketStatus(models.TextChoices):
+    OPEN = "open", _("Open")
+    IN_PROGRESS = "in_progress", _("In progress")
+    RESOLVED = "resolved", _("Resolved")
+    CLOSED = "closed", _("Closed")
+
+
+class Ticket(PublicIdMixin, TimeStampedModel):
+    type = models.CharField(max_length=25, choices=TicketType.choices)
+    priority = models.CharField(
+        max_length=8, choices=TicketPriority.choices, default=TicketPriority.NORMAL
+    )
+    status = models.CharField(
+        max_length=12, choices=TicketStatus.choices, default=TicketStatus.OPEN
+    )
+    subject = models.CharField(max_length=200)
+    requester = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    assigned_to = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    appointment = models.ForeignKey(
+        "bookings.Appointment", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    business = models.ForeignKey(
+        "businesses.Business", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    review = models.ForeignKey(
+        "reviews.Review", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    related_user = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    source_key = models.CharField(max_length=120, null=True, blank=True, unique=True)
+    first_response_at = models.DateTimeField(null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+    version = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["status", "priority", "created_at"]),
+            models.Index(fields=["requester", "-created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.type} {self.status}"
+
+
+class TicketMessage(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="messages")
+    author = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    body = models.TextField(max_length=4000)
+    is_internal = models.BooleanField(default=False)
+    attachments = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self) -> str:
+        return f"message on {self.ticket_id}"
+
+
+class TicketEvent(models.Model):
+    """Append-only history of what happened to a ticket."""
+
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="events")
+    actor = models.ForeignKey(
+        "accounts.User", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    kind = models.CharField(max_length=20)
+    from_value = models.CharField(max_length=40, blank=True)
+    to_value = models.CharField(max_length=40, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self) -> str:
+        return f"{self.ticket_id}: {self.kind}"

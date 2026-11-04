@@ -153,6 +153,77 @@
         "title": "AdminMeOut",
         "type": "object"
       },
+      "AdminMessageIn": {
+        "properties": {
+          "body": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "internal": {
+            "default": false,
+            "title": "Internal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "AdminMessageIn",
+        "type": "object"
+      },
+      "AdminMessageOut": {
+        "properties": {
+          "attachments": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Attachments",
+            "type": "array"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "is_internal": {
+            "title": "Is Internal",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "author",
+          "is_internal",
+          "body",
+          "attachments",
+          "created_at"
+        ],
+        "title": "AdminMessageOut",
+        "type": "object"
+      },
       "AdminOut": {
         "properties": {
           "email": {
@@ -200,6 +271,353 @@
           "status"
         ],
         "title": "AdminOut",
+        "type": "object"
+      },
+      "AdminTicketDetail": {
+        "properties": {
+          "assigned_to": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "first_response_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Response At"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/TicketEventOut"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "linked": {
+            "additionalProperties": true,
+            "title": "Linked",
+            "type": "object"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/AdminMessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "string"
+          },
+          "requester": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "priority",
+          "subject",
+          "created_at",
+          "updated_at",
+          "requester",
+          "assigned_to",
+          "version",
+          "first_response_at",
+          "resolved_at",
+          "linked",
+          "messages",
+          "history"
+        ],
+        "title": "AdminTicketDetail",
+        "type": "object"
+      },
+      "AdminTicketItem": {
+        "properties": {
+          "assigned_to": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "first_response_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Response At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "string"
+          },
+          "requester": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "priority",
+          "subject",
+          "created_at",
+          "updated_at",
+          "requester",
+          "assigned_to",
+          "version",
+          "first_response_at",
+          "resolved_at"
+        ],
+        "title": "AdminTicketItem",
+        "type": "object"
+      },
+      "AdminTicketPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AdminTicketItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "AdminTicketPage",
+        "type": "object"
+      },
+      "AdminTicketQuery": {
+        "properties": {
+          "assignee": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "older_than_hours": {
+            "anyOf": [
+              {
+                "maximum": 8760,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Older Than Hours"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "normal",
+                  "high",
+                  "urgent"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "sort": {
+            "default": "priority",
+            "title": "Sort",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "in_progress",
+                  "resolved",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "maxLength": 25,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          }
+        },
+        "title": "AdminTicketQuery",
         "type": "object"
       },
       "ApplyOut": {
@@ -879,6 +1297,32 @@
           "name"
         ],
         "title": "AreaRefOut",
+        "type": "object"
+      },
+      "AssignIn": {
+        "properties": {
+          "assignee_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee Id"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "AssignIn",
         "type": "object"
       },
       "AvailabilityOut": {
@@ -3150,6 +3594,21 @@
         "title": "ManualBookingIn",
         "type": "object"
       },
+      "MessageIn": {
+        "properties": {
+          "body": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "MessageIn",
+        "type": "object"
+      },
       "MessageOut": {
         "properties": {
           "detail": {
@@ -3161,6 +3620,21 @@
           "detail"
         ],
         "title": "MessageOut",
+        "type": "object"
+      },
+      "ModerateIn": {
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ModerateIn",
         "type": "object"
       },
       "MyReviewOut": {
@@ -3436,6 +3910,203 @@
         "title": "OnboardingOut",
         "type": "object"
       },
+      "OwnMessageOut": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_support": {
+            "title": "From Support",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "from_support",
+          "body",
+          "created_at"
+        ],
+        "title": "OwnMessageOut",
+        "type": "object"
+      },
+      "OwnQuery": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "in_progress",
+                  "resolved",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "OwnQuery",
+        "type": "object"
+      },
+      "OwnTicketDetail": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/OwnMessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "priority",
+          "subject",
+          "created_at",
+          "updated_at",
+          "messages"
+        ],
+        "title": "OwnTicketDetail",
+        "type": "object"
+      },
+      "OwnTicketOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "priority",
+          "subject",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OwnTicketOut",
+        "type": "object"
+      },
+      "OwnTicketPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OwnTicketOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "OwnTicketPage",
+        "type": "object"
+      },
       "OwnerBusinessOut": {
         "properties": {
           "address": {
@@ -3646,6 +4317,25 @@
           "email"
         ],
         "title": "PasswordResetRequestIn",
+        "type": "object"
+      },
+      "PersonRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "PersonRef",
         "type": "object"
       },
       "PhoneChangeIn": {
@@ -6511,6 +7201,128 @@
         "title": "StarterItemOut",
         "type": "object"
       },
+      "StatsOut": {
+        "properties": {
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Status",
+            "type": "object"
+          },
+          "first_response_count": {
+            "title": "First Response Count",
+            "type": "integer"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "median_first_response_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median First Response Seconds"
+          },
+          "median_resolution_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Resolution Seconds"
+          },
+          "resolved_count": {
+            "title": "Resolved Count",
+            "type": "integer"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "from_date",
+          "to_date",
+          "total",
+          "by_status",
+          "median_first_response_seconds",
+          "median_resolution_seconds",
+          "first_response_count",
+          "resolved_count"
+        ],
+        "title": "StatsOut",
+        "type": "object"
+      },
+      "StatsQuery": {
+        "properties": {
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "title": "StatsQuery",
+        "type": "object"
+      },
+      "StatusIn": {
+        "properties": {
+          "status": {
+            "enum": [
+              "open",
+              "in_progress",
+              "resolved",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "status"
+        ],
+        "title": "StatusIn",
+        "type": "object"
+      },
       "SubmitIn": {
         "properties": {
           "accept_commission_terms": {
@@ -6660,6 +7472,118 @@
           "suspended_by"
         ],
         "title": "SuspensionOut",
+        "type": "object"
+      },
+      "TicketCreateIn": {
+        "properties": {
+          "appointment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appointment Id"
+          },
+          "body": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "business_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Business Id"
+          },
+          "review_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Id"
+          },
+          "subject": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "booking_dispute",
+              "refund_request",
+              "provider_complaint",
+              "account_issue",
+              "other"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "subject",
+          "body"
+        ],
+        "title": "TicketCreateIn",
+        "type": "object"
+      },
+      "TicketEventOut": {
+        "properties": {
+          "actor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_value": {
+            "title": "From Value",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "to_value": {
+            "title": "To Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "actor_id",
+          "from_value",
+          "to_value",
+          "created_at"
+        ],
+        "title": "TicketEventOut",
         "type": "object"
       },
       "TimelineEventOut": {
@@ -9229,6 +10153,558 @@
           }
         ],
         "summary": "Request Info",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reviews/{review_id}/hide": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_hide_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Hide Review",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reviews/{review_id}/remove": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_remove_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Remove Review",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reviews/{review_id}/restore": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_restore_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Restore Review",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets": {
+      "get": {
+        "operationId": "apps_backoffice_api_tickets_admin_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "in_progress",
+                    "resolved",
+                    "closed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "low",
+                    "normal",
+                    "high",
+                    "urgent"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Priority"
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 25,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "assignee",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Assignee"
+            }
+          },
+          {
+            "in": "query",
+            "name": "older_than_hours",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 8760,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Older Than Hours"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "priority",
+              "title": "Sort",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTicketPage"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin List",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets/stats": {
+      "get": {
+        "operationId": "apps_backoffice_api_tickets_admin_stats",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin Stats",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets/{ticket_id}": {
+      "get": {
+        "operationId": "apps_backoffice_api_tickets_admin_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTicketDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin Get",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets/{ticket_id}/assign": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_admin_assign",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTicketDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin Assign",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets/{ticket_id}/messages": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_admin_message",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminMessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminMessageOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin Message",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/tickets/{ticket_id}/status": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_admin_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminTicketDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Admin Status",
         "tags": [
           "admin"
         ]
@@ -14524,6 +16000,201 @@
         "summary": "Search Businesses",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/tickets": {
+      "get": {
+        "operationId": "apps_backoffice_api_tickets_list_own",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "in_progress",
+                    "resolved",
+                    "closed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnTicketPage"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "List Own",
+        "tags": [
+          "support"
+        ]
+      },
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_create_ticket",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnTicketDetail"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Create Ticket",
+        "tags": [
+          "support"
+        ]
+      }
+    },
+    "/api/v1/tickets/{ticket_id}": {
+      "get": {
+        "operationId": "apps_backoffice_api_tickets_get_own",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnTicketDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Get Own",
+        "tags": [
+          "support"
+        ]
+      }
+    },
+    "/api/v1/tickets/{ticket_id}/messages": {
+      "post": {
+        "operationId": "apps_backoffice_api_tickets_add_own_message",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticket_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Ticket Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnMessageOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ],
+        "summary": "Add Own Message",
+        "tags": [
+          "support"
         ]
       }
     },
