@@ -10,6 +10,9 @@ class BackofficeConfig(AppConfig):
     def ready(self) -> None:
         from django.db.models.signals import post_migrate
 
+        from . import receivers
+
+        receivers.connect()
         post_migrate.connect(_sync_groups, sender=self)
 
 

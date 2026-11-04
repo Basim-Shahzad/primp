@@ -605,6 +605,24 @@
         "title": "AppointmentServiceOut",
         "type": "object"
       },
+      "ApproveIn": {
+        "properties": {
+          "checklist": {
+            "$ref": "#/components/schemas/Checklist"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "checklist"
+        ],
+        "title": "ApproveIn",
+        "type": "object"
+      },
       "AreaRefOut": {
         "properties": {
           "id": {
@@ -1214,6 +1232,39 @@
         "title": "ChangesOut",
         "type": "object"
       },
+      "Checklist": {
+        "properties": {
+          "address_plausible": {
+            "title": "Address Plausible",
+            "type": "boolean"
+          },
+          "category_correct": {
+            "title": "Category Correct",
+            "type": "boolean"
+          },
+          "identity_matches": {
+            "title": "Identity Matches",
+            "type": "boolean"
+          },
+          "no_duplicate": {
+            "title": "No Duplicate",
+            "type": "boolean"
+          },
+          "photos_genuine": {
+            "title": "Photos Genuine",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "identity_matches",
+          "address_plausible",
+          "photos_genuine",
+          "category_correct",
+          "no_duplicate"
+        ],
+        "title": "Checklist",
+        "type": "object"
+      },
       "ChecklistItemOut": {
         "properties": {
           "done": {
@@ -1266,6 +1317,20 @@
           "slug"
         ],
         "title": "CityRefOut",
+        "type": "object"
+      },
+      "ClaimIn": {
+        "properties": {
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "ClaimIn",
         "type": "object"
       },
       "ClosureIn": {
@@ -1533,6 +1598,58 @@
         "title": "DeactivateIn",
         "type": "object"
       },
+      "DecisionOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "admin_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Admin Id"
+          },
+          "checklist": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "boolean"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checklist"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "admin_id",
+          "checklist",
+          "message",
+          "created_at"
+        ],
+        "title": "DecisionOut",
+        "type": "object"
+      },
       "DeletionIn": {
         "properties": {
           "reason": {
@@ -1746,6 +1863,38 @@
           "created_at"
         ],
         "title": "DocumentOut",
+        "type": "object"
+      },
+      "DuplicateOut": {
+        "properties": {
+          "business_id": {
+            "format": "uuid",
+            "title": "Business Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "business_id",
+          "name",
+          "status",
+          "reasons"
+        ],
+        "title": "DuplicateOut",
         "type": "object"
       },
       "EmailChangeIn": {
@@ -2180,6 +2329,37 @@
         "title": "ImpactOut",
         "type": "object"
       },
+      "InfoIn": {
+        "properties": {
+          "checklist": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Checklist"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "message"
+        ],
+        "title": "InfoIn",
+        "type": "object"
+      },
       "LocationOut": {
         "properties": {
           "lat": {
@@ -2434,16 +2614,54 @@
       },
       "NoteIn": {
         "properties": {
-          "note": {
-            "maxLength": 1000,
-            "title": "Note",
+          "body": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Body",
             "type": "string"
           }
         },
         "required": [
-          "note"
+          "body"
         ],
         "title": "NoteIn",
+        "type": "object"
+      },
+      "NoteOut": {
+        "properties": {
+          "author_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Id"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "author_id",
+          "body",
+          "created_at"
+        ],
+        "title": "NoteOut",
         "type": "object"
       },
       "OTPRequestIn": {
@@ -3484,6 +3702,333 @@
         "title": "ProviderStaffOut",
         "type": "object"
       },
+      "QueueBusiness": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "city",
+          "category",
+          "status"
+        ],
+        "title": "QueueBusiness",
+        "type": "object"
+      },
+      "QueueDetail": {
+        "properties": {
+          "assigned_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "business": {
+            "$ref": "#/components/schemas/QueueBusiness"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/DecisionOut"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "documents": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documents"
+          },
+          "duplicates": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateOut"
+            },
+            "title": "Duplicates",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/NoteOut"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "preview": {
+            "additionalProperties": true,
+            "title": "Preview",
+            "type": "object"
+          },
+          "previous_items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueItemOut"
+            },
+            "title": "Previous Items",
+            "type": "array"
+          },
+          "private": {
+            "additionalProperties": true,
+            "title": "Private",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "waiting_seconds": {
+            "title": "Waiting Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "business",
+          "assigned_to",
+          "submitted_at",
+          "waiting_seconds",
+          "version",
+          "outcome",
+          "preview",
+          "private",
+          "documents",
+          "duplicates",
+          "decisions",
+          "notes",
+          "previous_items"
+        ],
+        "title": "QueueDetail",
+        "type": "object"
+      },
+      "QueueItemOut": {
+        "properties": {
+          "assigned_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned To"
+          },
+          "business": {
+            "$ref": "#/components/schemas/QueueBusiness"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "waiting_seconds": {
+            "title": "Waiting Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "business",
+          "assigned_to",
+          "submitted_at",
+          "waiting_seconds",
+          "version",
+          "outcome"
+        ],
+        "title": "QueueItemOut",
+        "type": "object"
+      },
+      "QueuePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "QueuePage",
+        "type": "object"
+      },
+      "QueueQuery": {
+        "properties": {
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "city_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Id"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "new_listing",
+                  "change_request"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 100000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "sort": {
+            "default": "submitted_at",
+            "title": "Sort",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "in_review",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "QueueQuery",
+        "type": "object"
+      },
       "RangeQuery": {
         "properties": {
           "from": {
@@ -3831,13 +4376,32 @@
       },
       "RejectIn": {
         "properties": {
+          "checklist": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Checklist"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reason": {
-            "default": "",
             "maxLength": 500,
+            "minLength": 1,
             "title": "Reason",
             "type": "string"
+          },
+          "version": {
+            "minimum": 1,
+            "title": "Version",
+            "type": "integer"
           }
         },
+        "required": [
+          "version",
+          "reason"
+        ],
         "title": "RejectIn",
         "type": "object"
       },
@@ -6658,6 +7222,58 @@
         ]
       }
     },
+    "/api/v1/admin/businesses/{business_id}/revoke-verification": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_revoke_verification",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "business_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Business Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Revoke Verification",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/deletion-requests": {
       "get": {
         "operationId": "apps_backoffice_api_users_list_deletion_requests",
@@ -6831,6 +7447,515 @@
           }
         ],
         "summary": "Reauth",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue": {
+      "get": {
+        "operationId": "apps_backoffice_api_listings_list_queue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 100000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "city_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "City Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "new_listing",
+                    "change_request"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "in_review",
+                    "closed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "submitted_at",
+              "title": "Sort",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueuePage"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "List Queue",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}": {
+      "get": {
+        "operationId": "apps_backoffice_api_listings_get_item",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Get Item",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/approve": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_approve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Approve",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/approve-change": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_approve_change",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Approve Change",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/claim": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_claim",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaimIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Claim",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/notes": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_add_note",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteOut"
+                }
+              }
+            },
+            "description": "Created"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Add Note",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/reject": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_reject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Reject",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/reject-change": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_reject_change",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Reject Change",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/review-queue/{item_id}/request-info": {
+      "post": {
+        "operationId": "apps_backoffice_api_listings_request_info",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfoIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "AdminAuth": []
+          }
+        ],
+        "summary": "Request Info",
         "tags": [
           "admin"
         ]

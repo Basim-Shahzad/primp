@@ -29,6 +29,49 @@ ENDPOINTS: dict[tuple[str, str], tuple[str | None, Any, str]] = {
         "",
     ),
     ("patch", "/admin/admins/{user_id}/groups"): ("admins.manage", {"group": "ops_admin"}, ""),
+    ("get", "/admin/review-queue"): ("businesses.review", None, ""),
+    ("get", "/admin/review-queue/{item_id}"): ("businesses.review", None, ""),
+    ("post", "/admin/review-queue/{item_id}/claim"): ("businesses.review", {"version": 1}, ""),
+    ("post", "/admin/review-queue/{item_id}/approve"): (
+        "businesses.review",
+        {
+            "version": 1,
+            "checklist": {
+                "identity_matches": True,
+                "address_plausible": True,
+                "photos_genuine": True,
+                "category_correct": True,
+                "no_duplicate": True,
+            },
+        },
+        "",
+    ),
+    ("post", "/admin/review-queue/{item_id}/reject"): (
+        "businesses.review",
+        {"version": 1, "reason": "No"},
+        "",
+    ),
+    ("post", "/admin/review-queue/{item_id}/request-info"): (
+        "businesses.review",
+        {"version": 1, "message": "More please"},
+        "",
+    ),
+    ("post", "/admin/review-queue/{item_id}/approve-change"): (
+        "businesses.review",
+        {"version": 1},
+        "",
+    ),
+    ("post", "/admin/review-queue/{item_id}/reject-change"): (
+        "businesses.review",
+        {"version": 1, "reason": "No"},
+        "",
+    ),
+    ("post", "/admin/review-queue/{item_id}/notes"): ("businesses.review", {"body": "note"}, ""),
+    ("post", "/admin/businesses/{business_id}/revoke-verification"): (
+        "businesses.revoke",
+        REASON,
+        "",
+    ),
 }
 # endpoints that are open by design (they authenticate by credentials, not by a token)
 PUBLIC: set[tuple[str, str]] = {("post", "/admin/auth/login")}
