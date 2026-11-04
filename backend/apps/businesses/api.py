@@ -5,6 +5,7 @@ from ninja import Query, Router
 
 from apps.accounts.auth import optional_user
 from apps.core.errors import not_found
+from apps.geo import selectors as geo
 
 from . import page as page_service
 from . import search as search_service
@@ -38,7 +39,8 @@ def search_businesses(
     request: HttpRequest, params: Query[search_service.SearchParams]
 ) -> SearchOut:
     user = optional_user(request)
-    result = search_service.search(params, user.pk if user else None)
+    with geo.preview_cities(bool(user and user.is_admin_role)):  # admins also see preview cities
+        result = search_service.search(params, user.pk if user else None)
     return SearchOut(
         items=[item_out(i) for i in result.items],
         next_cursor=result.next_cursor,
@@ -48,7 +50,9 @@ def search_businesses(
 
 @businesses_router.get("/{ref}", auth=None, response=BusinessPageOut)
 def get_business(request: HttpRequest, ref: str, city: str | None = None) -> dict[str, Any]:
-    business = selectors.get_public_business(ref, city)
+    user = optional_user(request)
+    with geo.preview_cities(bool(user and user.is_admin_role)):
+        business = selectors.get_public_business(ref, city)
     if business is None:
         raise not_found()
     return page_service.render_page(business)

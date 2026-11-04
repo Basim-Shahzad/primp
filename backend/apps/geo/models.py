@@ -19,6 +19,7 @@ class City(TimeStampedModel):
         max_length=10, choices=CityVisibility.choices, default=CityVisibility.HIDDEN
     )
     is_active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         verbose_name_plural = "cities"
@@ -40,6 +41,7 @@ class Area(TimeStampedModel):
     polygon = gis_models.PolygonField(geography=False, srid=4326, null=True, blank=True)
     is_pilot = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    version = models.PositiveIntegerField(default=1)
 
     class Meta:
         ordering = ["name"]

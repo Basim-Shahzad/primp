@@ -1,3 +1,7 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
+
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 
@@ -16,8 +20,26 @@ def visible_cities() -> list[City]:
     return list(City.objects.filter(is_active=True, visibility=CityVisibility.PUBLIC))
 
 
+_preview: ContextVar[bool] = ContextVar("preview_cities_visible", default=False)
+
+
+@contextmanager
+def preview_cities(enabled: bool) -> Iterator[None]:
+    """Within the block, `preview` cities count as public (set only for authenticated admins)."""
+    token = _preview.set(enabled)
+    try:
+        yield
+    finally:
+        _preview.reset(token)
+
+
 def public_city_lookups(prefix: str = "city") -> dict[str, object]:
     """ORM lookups restricting a queryset to businesses in active, public cities."""
+    if _preview.get():
+        return {
+            f"{prefix}__is_active": True,
+            f"{prefix}__visibility__in": [CityVisibility.PUBLIC, CityVisibility.PREVIEW],
+        }
     return {f"{prefix}__is_active": True, f"{prefix}__visibility": CityVisibility.PUBLIC}
 
 

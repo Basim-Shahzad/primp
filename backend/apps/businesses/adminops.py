@@ -196,3 +196,35 @@ def category_usage() -> dict[int, tuple[int, int]]:
     for cid, n in Business.objects.values_list("category_id").annotate(n=Count("id")).order_by():
         usage.setdefault(cid, [0, 0])[1] = n
     return {k: (v[0], v[1]) for k, v in usage.items()}
+
+
+def count_listed(*, city_id: int | None = None, area_id: int | None = None) -> int:
+    qs = Business.objects.filter(is_listed=True)
+    if city_id is not None:
+        qs = qs.filter(city_id=city_id)
+    if area_id is not None:
+        qs = qs.filter(area_id=area_id)
+    return qs.count()
+
+
+def notify_owners_unavailable(
+    *, city_id: int | None = None, area_id: int | None = None, place: str
+) -> int:
+    """Tell the owners of listed businesses that their city/area was switched off."""
+    from .onboarding import notify_status_changed
+
+    qs = Business.objects.filter(is_listed=True)
+    if city_id is not None:
+        qs = qs.filter(city_id=city_id)
+    if area_id is not None:
+        qs = qs.filter(area_id=area_id)
+    count = 0
+    for business in qs:
+        notify_status_changed(
+            business,
+            "hidden",
+            f"{place} is temporarily not served on Primp, so your listing is not shown.",
+        )
+        touch(business.pk)
+        count += 1
+    return count
